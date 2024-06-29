@@ -2,8 +2,6 @@
 import { ref } from 'vue';
 import { FilterMatchMode, FilterOperator } from 'primevue/api';
 
-// Datos de ejemplo
-
 const value1 = ref(null);
 const value2 = ref(null);
 const value3 = ref(null);
@@ -84,11 +82,11 @@ const solucion = ref([
 ]);
 
 
-// Estado del diálogo
+
 const productDialog = ref(false);
 const submitted = ref(false);
 
-// Manejadores de eventos
+
 const hideDialog = () => {
     productDialog.value = false;
     submitted.value = false;
@@ -101,7 +99,7 @@ const editProduct = () => {
     productDialog.value = true;
 };
 
-// Filtros
+
 const filters1 = ref({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
     atencion: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
@@ -120,13 +118,13 @@ const initFilters1 = () => {
         nit: { value: null, matchMode: FilterMatchMode.EQUALS },
         empresa: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
         telefono: { value: null, matchMode: FilterMatchMode.EQUALS },
-        estado: { value: null, matchMode: FilterMatchMode.EQUALS }  // Asegúrate de incluir el filtro de estado
+        estado: { value: null, matchMode: FilterMatchMode.EQUALS }
     };
 };
 
 const clearFilter1 = () => initFilters1();
 
-// Formato de fecha
+
 const formatDate = (value) => {
     return value.toLocaleDateString('es-ES', {
         day: '2-digit',
@@ -135,19 +133,19 @@ const formatDate = (value) => {
     });
 };
 
-// Obtención de la severidad basada en el estado
+
 const getSeverity = (status) => {
     switch (status) {
         case 'pendiente':
-            return 'warning';  // Asegurándose de que todos los casos estén cubiertos
+            return 'warning';
         case 'solucionado':
             return 'success';
         default:
-            return 'info';  // Manejo de estados no reconocidos
+            return 'info';
     }
 };
 
-// Datos de atención
+
 const atenciones = ref([
     { atencion: 'Correo', date: new Date('2024-06-18'), nit: 123456789, empresa: 'Gas y Gas', telefono: 71212888, estado: 'solucionado' },
     { atencion: 'Telefono', date: new Date('2024-06-19'), nit: 987654321, empresa: 'ElectroMax', telefono: 69874512, estado: 'pendiente' },
