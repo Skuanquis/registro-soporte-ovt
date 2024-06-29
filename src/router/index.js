@@ -1,5 +1,5 @@
-import { createRouter, createWebHistory } from 'vue-router';
-import AppLayout from '@/layout/AppLayout.vue';
+import { createRouter, createWebHistory } from 'vue-router'
+import AppLayout from '@/layout/AppLayout.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -10,9 +10,9 @@ const router = createRouter({
       component: () => import('@/views/auth/Login.vue')
     },
     {
-       path: '/dashboard',
-       component: AppLayout,
-       children:[
+      path: '/dashboard',
+      component: AppLayout,
+      children: [
         {
           path: '/dashboard',
           name: 'dashboard',
@@ -27,9 +27,14 @@ const router = createRouter({
           path: '/registrar-atencion',
           name: 'registrar-atencion',
           component: () => import('@/views/pages/RegistrarAtencion.vue')
+        },
+        {
+          path: '/ver-atenciones',
+          name: 'ver-atenciones',
+          component: () => import('@/views/pages/VerAtenciones.vue')
         }
-       ]
-       /*children: [
+      ]
+      /*children: [
         {
           path: '/perfil',
           name: 'perfil',
