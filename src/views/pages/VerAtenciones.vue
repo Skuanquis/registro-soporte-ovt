@@ -12,8 +12,20 @@ const value7 = ref(null);
 const value8 = ref(null);
 const value9 = ref(null);
 const value10 = ref(null);
+const atencion = ref({
+    tipo: '',
+    date: '',
+    nit: '',
+    matricula: '',
+    empresa: '',
+    nombreCompleto: '',
+    correo: '',
+    telefono: '',
+    problema: '',
+    estado: ''
+});
 
-const treeSelectNodes = ref([
+const problemas = ref([
     {
         key: '1', label: 'Planillas', data: 'Planillas', children: [
             { key: '1-1', label: 'Mensual', data: 'Mensual' },
@@ -83,24 +95,47 @@ const solucion = ref([
 
 
 
-const productDialog = ref(false);
+const editarAtencion = ref(false);
 const submitted = ref(false);
 
 
 const hideDialog = () => {
-    productDialog.value = false;
+    editarAtencion.value = false;
     submitted.value = false;
+    atencion.value = {
+        tipo: '',
+        date: '',
+        nit: '',
+        matricula: '',
+        empresa: '',
+        nombreCompleto: '',
+        correo: '',
+        telefono: '',
+        problema: '',
+        estado: ''
+    };
 };
-const saveProduct = () => {
+
+const guardarCambios = () => {
     submitted.value = true;
-    productDialog.value = false;
+    if (atencion.value.tipo && atencion.value.date && atencion.value.nit && atencion.value.empresa && atencion.value.nombreCompleto && atencion.value.correo && atencion.value.telefono && atencion.value.problema && atencion.value.estado) {
+        //Nose porque chucha el toast no funciona xD
+        //toast.add({ severity: 'success', summary: 'Editado', detail: 'La información se editó con éxito', life: 3000 });
+        hideDialog();
+        // lógica para editar la atención...
+    } else {
+        //toast.add({ severity: 'error', summary: 'Error', detail: 'Por favor complete todos los campos', life: 3000 });
+    }
+    hideDialog();
 };
-const editProduct = () => {
-    productDialog.value = true;
+
+const infoAtencion = (infoAtencion) => {
+    atencion.value = { ...infoAtencion }
+    editarAtencion.value = true;
 };
 
 
-const filters1 = ref({
+const filtros = ref({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
     atencion: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
     date: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.DATE_IS }] },
@@ -110,8 +145,8 @@ const filters1 = ref({
     estado: { operator: FilterOperator.OR, constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }] }
 });
 
-const initFilters1 = () => {
-    filters1.value = {
+const iniciarFiltros = () => {
+    filtros.value = {
         global: { value: null, matchMode: FilterMatchMode.CONTAINS },
         atencion: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
         date: { value: null, matchMode: FilterMatchMode.DATE_IS },
@@ -122,7 +157,7 @@ const initFilters1 = () => {
     };
 };
 
-const clearFilter1 = () => initFilters1();
+const limpiarFiltros = () => iniciarFiltros();
 
 
 const formatDate = (value) => {
@@ -137,7 +172,7 @@ const formatDate = (value) => {
 const getSeverity = (status) => {
     switch (status) {
         case 'pendiente':
-            return 'warning';
+            return 'danger';
         case 'solucionado':
             return 'success';
         default:
@@ -158,7 +193,7 @@ const atenciones = ref([
 ]);
 
 
-const customer1 = ref(atenciones.value);
+const listaAtenciones = ref(atenciones.value);
 const loading1 = ref(false);
 
 </script>
@@ -168,17 +203,16 @@ const loading1 = ref(false);
         <div class="col-12">
             <div class="card">
                 <h5>Mis Atenciones</h5>
-                <DataTable :value="customer1" :paginator="true" :rows="10" dataKey="id" :rowHover="true"
-                    v-model:filters="filters1" filterDisplay="menu" :loading="loading1" :filters="filters1"
+                <DataTable :value="listaAtenciones" :paginator="true" :rows="10" dataKey="id" :rowHover="true"
+                    v-model:filters="filtros" filterDisplay="menu" :loading="loading1" :filters="filtros"
                     :globalFilterFields="['atencion', 'nit', 'telefono', 'empresa', 'estado']" showGridlines>
                     <template #header>
                         <div class="flex justify-content-between flex-column sm:flex-row">
                             <Button type="button" icon="pi pi-filter-slash" label="Limpiar" outlined
-                                @click="clearFilter1()" />
+                                @click="limpiarFiltros()" />
                             <IconField iconPosition="left">
                                 <InputIcon class="pi pi-search" />
-                                <InputText v-model="filters1['global'].value" placeholder="Buscar"
-                                    style="width: 100%" />
+                                <InputText v-model="filtros['global'].value" placeholder="Buscar" style="width: 100%" />
                             </IconField>
                         </div>
                     </template>
@@ -238,13 +272,13 @@ const loading1 = ref(false);
                     <Column headerStyle="min-width:8rem; text-align: center;" header="Modificar">
                         <template #body="slotProps">
                             <div style="text-align: center;">
-                                <Button icon="pi pi-pencil" severity="success" rounded
-                                    @click="editProduct(slotProps.data)" />
+                                <Button icon="pi pi-pencil" severity="primary" rounded
+                                    @click="infoAtencion(slotProps.data)" />
                             </div>
                         </template>
                     </Column>
                 </DataTable>
-                <Dialog v-model:visible="productDialog" :style="{ width: '450px' }" header="Detalles de la atención"
+                <Dialog v-model:visible="editarAtencion" :style="{ width: '450px' }" header="Detalles de la atención"
                     :modal="true" class="p-fluid">
                     <div class="field">
                         <h5>Tipo de atención</h5>
@@ -252,7 +286,6 @@ const loading1 = ref(false);
                             <Dropdown id="dropdown" :options="tipos" v-model="value1" optionLabel="name"></Dropdown>
                             <label for="dropdown">Elige ua opción</label>
                         </FloatLabel>
-                        <small class="p-invalid" v-if="submitted && !product.name">Name is required.</small>
                         <br>
                         <FloatLabel>
                             <Calendar inputId="calendar" v-model="value2"></Calendar>
@@ -302,7 +335,7 @@ const loading1 = ref(false);
                         <h5>Tipo de problema</h5>
                         <div class="p-fluid mt-3">
                             <FloatLabel>
-                                <TreeSelect v-model="value9" :options="treeSelectNodes" placeholder="Select Item">
+                                <TreeSelect v-model="value9" :options="problemas" placeholder="Select Item">
                                 </TreeSelect>
                                 <label for="inputnumber">Problema</label>
                             </FloatLabel>
@@ -321,7 +354,7 @@ const loading1 = ref(false);
                     </div>
                     <template #footer>
                         <Button label="Cancelar" icon="pi pi-times" text="" @click="hideDialog" />
-                        <Button label="Guardar" icon="pi pi-check" text="" @click="saveProduct" />
+                        <Button label="Guardar" icon="pi pi-check" text="" @click="guardarCambios" />
                     </template>
                 </Dialog>
             </div>
