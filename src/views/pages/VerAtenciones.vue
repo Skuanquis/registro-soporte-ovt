@@ -12,6 +12,7 @@ const value7 = ref(null);
 const value8 = ref(null);
 const value9 = ref(null);
 const value10 = ref(null);
+const value11 = ref(null);
 const atencion = ref({
     tipo: '',
     date: '',
@@ -343,10 +344,23 @@ const loading1 = ref(false);
                     </div>
 
                     <div class="field">
+                        <h5>¿Se realizó asistencia remota?</h5>
+                        <div class="field-radiobutton mb-0">
+                            <RadioButton id="siRemoro" name="option" value="Si" v-model="value10" />
+                            <label for="siRemoro">Si</label>
+                        </div>
+                        <br>
+                        <div class="field-radiobutton mb-0">
+                            <RadioButton id="noRemoto" name="option" value="No" v-model="value10" />
+                            <label for="noRemoto">No</label>
+                        </div>
+                    </div>
+
+                    <div class="field">
                         <h5>Tipo de problema</h5>
                         <div class="p-fluid mt-3">
                             <FloatLabel>
-                                <Dropdown id="dropdown" :options="solucion" v-model="value10" optionLabel="name">
+                                <Dropdown id="dropdown" :options="solucion" v-model="value11" optionLabel="name">
                                 </Dropdown>
                                 <label for="dropdown">Estado</label>
                             </FloatLabel>

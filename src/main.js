@@ -27,6 +27,8 @@ import InputIcon from 'primevue/inputicon'
 import Column from 'primevue/column'
 import Tag from 'primevue/tag'
 import Dialog from 'primevue/dialog'
+import Chart from 'primevue/chart'
+import RadioButton from 'primevue/radiobutton'
 
 const app = createApp(App)
 
@@ -51,5 +53,7 @@ app.component('InputIcon', InputIcon)
 app.component('Column', Column)
 app.component('Tag', Tag)
 app.component('Dialog', Dialog)
+app.component('Chart', Chart)
+app.component('RadioButton', RadioButton)
 
 app.mount('#app')

@@ -11,6 +11,7 @@ const value7 = ref(null);
 const value8 = ref(null);
 const value9 = ref(null);
 const value10 = ref(null);
+const value11 = ref(null);
 
 const treeSelectNodes = ref([
     {
@@ -145,7 +146,7 @@ const solucion = ref([
         </div>
     </div>
     <div class="grid">
-        <div class="col md:col-6">
+        <div class="col md:col-4">
             <div class="card">
                 <h5>Tipo de problema</h5>
                 <div class="p-fluid mt-3">
@@ -156,12 +157,26 @@ const solucion = ref([
                 </div>
             </div>
         </div>
-        <div class="field col md:col-6">
+        <div class="field col md:col-4">
+            <div class="card">
+                <h5>¿Se realizó asistencia remota?</h5>
+                <div class="field-radiobutton mb-0">
+                    <RadioButton id="siRemoro" name="option" value="Si" v-model="value10" />
+                    <label for="siRemoro">Si</label>
+                </div>
+                <br>
+                <div class="field-radiobutton mb-0">
+                    <RadioButton id="noRemoto" name="option" value="No" v-model="value10" />
+                    <label for="noRemoto">No</label>
+                </div>
+            </div>
+        </div>
+        <div class="field col md:col-4">
             <div class="card">
                 <h5>Estado </h5>
                 <div class="p-fluid mt-3">
                     <FloatLabel>
-                        <Dropdown id="dropdown" :options="solucion" v-model="value10" optionLabel="name"></Dropdown>
+                        <Dropdown id="dropdown" :options="solucion" v-model="value11" optionLabel="name"></Dropdown>
                         <label for="dropdown">Estado</label>
                     </FloatLabel>
                 </div>
