@@ -32,6 +32,11 @@ const router = createRouter({
           path: '/ver-atenciones',
           name: 'ver-atenciones',
           component: () => import('@/views/pages/VerAtenciones.vue')
+        },
+        {
+          path: '/preguntas-frecuentes',
+          name: 'preguntas-frecuentes',
+          component: () => import('@/views/pages/PreguntasFrecuentes.vue')
         }
       ]
       /*children: [

@@ -16,6 +16,7 @@ const model = ref([
         items: [
             { label: 'Registrar Atención', icon: 'pi pi-fw pi-pencil', to: '/registrar-atencion' },
             { label: 'Ver Atenciones', icon: 'pi pi-fw pi-book', to: '/ver-atenciones' },
+            { label: 'Preguntas Frecuentes', icon: 'pi pi-fw pi-question-circle', to: '/preguntas-frecuentes' },
             { label: 'Cerrar Sesión', icon: 'pi pi-fw pi-sign-out', to: '/' }
         ]
     }

@@ -8,6 +8,8 @@ import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
 
+import Accordion from 'primevue/accordion'
+import AccordionTab from 'primevue/accordiontab'
 import PrimeVue from 'primevue/config'
 import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
@@ -35,6 +37,8 @@ const app = createApp(App)
 app.use(createPinia())
 app.use(router)
 app.use(PrimeVue, { ripple: true })
+app.component('Accordion', Accordion)
+app.component('AccordionTab', AccordionTab)
 app.component('InputText', InputText)
 app.component('Button', Button)
 app.component('Checkbox', Checkbox)
