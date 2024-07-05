@@ -1,73 +1,62 @@
 <script setup>
 import InputNumber from 'primevue/inputnumber';
 import { ref } from 'vue';
+import { createAtencion } from '../../services/atencionService';
+import * as jwt_decode from 'jwt-decode'; // Importa todo el módulo y luego usa la función específica
+
 const value1 = ref(null);
 const value2 = ref(null);
 const value3 = ref(null);
 const value4 = ref(null);
-const value5 = ref(null);
-const value6 = ref(null);
-const value7 = ref(null);
+const value5 = ref('');
+const value6 = ref('');
+const value7 = ref('');
 const value8 = ref(null);
 const value9 = ref(null);
 const value10 = ref(null);
 const value11 = ref(null);
+const subProblema = ref(null);
 
-const treeSelectNodes = ref([
-    {
-        key: '1', label: 'Planillas', data: 'Planillas', children: [
-            { key: '1-1', label: 'Mensual', data: 'Mensual' },
-            { key: '1-2', label: 'Retroactiva', data: 'Retroactiva' },
-            { key: '1-3', label: 'Aguinaldo', data: 'Aguinaldo' },
-            { key: '1-4', label: 'Rectificación', data: 'Rectificación' },
-            { key: '1-5', label: 'Declaración en cero', data: 'Declaración en cero' },
-            { key: '1-6', label: 'Tipo de declaración', data: 'Tipo de declaración' },
-            { key: '1-7', label: 'No figura sucursal', data: 'No figura sucursal' },
-            { key: '1-8', label: 'Incumplimento de declaración', data: 'Incumplimento de declaración' },
-            {
-                key: '1-9', label: 'Fuera de plazo', data: 'Fuera de plazo', children: [
-                    { key: '1-9-1', label: 'Minera', data: 'Minera' },
-                    { key: '1-9-2', label: 'Publica', data: 'Publica' }
-                ]
-            },
-            {
-                key: '1-10', label: 'Error al importar', data: 'Error al importar', children: [
-                    { key: '1-10-1', label: 'Encabezados', data: 'Encabezados' },
-                    { key: '1-10-2', label: 'Separadores', data: 'Separadores' },
-                    { key: '1-10-3', label: 'Decimales', data: 'Decimales' },
-                    { key: '1-10-4', label: 'Nacionalidad', data: 'Nacionalidad' }
-                ]
-            },
-            {
-                key: '1-11', label: 'Trabajadores', data: 'Trabajadores', children: [
-                    { key: '1-11-1', label: 'Jubilado', data: 'Jubilado' },
-                    { key: '1-11-2', label: 'Retiro de trabajador', data: 'Retiro de trabajador' },
-                    { key: '1-11-3', label: 'Validar dependiente', data: 'Validar dependiente' },
-                    { key: '1-11-4', label: 'Validar trabajador', data: 'Validar trabajador' }
-                ]
-            }
-        ]
-    },
-    {
-        key: '2', label: 'ROE', data: 'ROE', children: [
-            { key: '2-1', label: 'Dar de baja el ROE', data: 'Dar de baja el ROE' },
-            { key: '2-2', label: 'Correo de confirmación', data: 'Correo de confirmación' },
-            { key: '2-3', label: 'Multa RM N105/18', data: 'Multa RM N105/18' },
-            { key: '2-4', label: 'Inicio de actividades', data: 'Inicio de actividades' },
-            { key: '2-5', label: 'Sucursal inactiva', data: 'Sucursal inactiva' },
-            { key: '2-6', label: 'Inscripción al ROE', data: 'Inscripción al ROE' },
-            { key: '2-7', label: 'Pendiente de firma', data: 'Pendiente de firma' },
-            {
-                key: '2-8', label: 'Actualizar ROE', data: 'Actualizar ROE', children: [
-                    { key: '2-8-1', label: 'Error interno', data: 'Error interno' },
-                    { key: '2-8-2', label: 'Representante legal', data: 'Representante legal' },
-                ]
-            }
-        ]
-    },
-    { key: '3', label: 'Falla interoperabilidad', data: 'Falla interoperabilidad' },
-    { key: '4', label: 'Contraseña', data: 'Contraseña' },
-    { key: '5', label: 'Otro', data: 'Otro' }
+const principal = ref([
+    { name: 'Planillas', code: 'P' },
+    { name: 'ROE', code: 'R' },
+    { name: 'Trabajadores', code: 'T' },
+    { name: 'Falla interoperabilidad', code: 'F' },
+    { name: 'Contraseña', code: 'C' },
+    { name: 'Otro', code: 'O' }
+]);
+
+const planillaOptions = ref([
+    { name: 'Mensual', code: '1' },
+    { name: 'Retroactiva', code: '2' },
+    { name: 'Aguinaldo', code: '3' },
+    { name: 'Rectificación', code: '4' },
+    { name: 'Fuera de plazo', code: '5' },
+    { name: 'Declaración en cero', code: '6' },
+    { name: 'Tipo de declaración', code: '7' },
+    { name: 'No figura sucursal', code: '8' },
+    { name: 'Incumplimiento de declaración', code: '9' },
+    { name: 'Error al importar', code: '10' }
+]);
+
+const roeOptions = ref([
+    { name: 'Dar de baja el ROE', code: '1' },
+    { name: 'Correo de confirmación', code: '2' },
+    { name: 'Multa RM°105/18', code: '3' },
+    { name: 'Inicio de actividades', code: '4' },
+    { name: 'Sucursal inactiva', code: '5' },
+    { name: 'Inscripción al ROE', code: '6' },
+    { name: 'Pendiente de firma', code: '7' },
+    { name: 'Actualizar ROE', code: '8' },
+    { name: 'Error interno', code: '9' },
+    { name: 'Representante legal', code: '10' }
+]);
+
+const trabajadorOptions = ref([
+    { name: 'No es jubilado', code: '1' },
+    { name: 'Retiro de trabajador', code: '2' },
+    { name: 'No valida dependiente', code: '3' },
+    { name: 'No valida trabajador', code: '4' }
 ]);
 
 const tipos = ref([
@@ -80,6 +69,54 @@ const solucion = ref([
     { name: 'Solucionado', code: 'S' },
     { name: 'Pendiente', code: 'PE' }
 ]);
+
+const resetForm = () => {
+    value1.value = null;
+    value2.value = null;
+    value3.value = null;
+    value4.value = null;
+    value5.value = '';
+    value6.value = '';
+    value7.value = '';
+    value8.value = null;
+    value9.value = null;
+    value10.value = null;
+    value11.value = null;
+    subProblema.value = null;
+};
+
+const handleSubmit = async () => {
+    try {
+        const token = localStorage.getItem('accessToken');
+        const decoded = jwt_decode.default(token);
+        const id_usuario = decoded.id;
+
+        const atencionData = {
+            id_usuario,
+            fecha: value2.value,
+            tipo_atencion: value1.value.name,
+            nombre_empleador: value6.value,
+            correo: value7.value,
+            telefono: value8.value,
+            nombre_empresa: value5.value,
+            nit: value3.value,
+            matricula: value4.value,
+            problema: value9.value.name,
+            subproblema: subProblema.value ? subProblema.value.name : null,
+            estado: value11.value.name,
+            asistencia_remota: value10.value
+        };
+
+        console.log(atencionData); // Verifica los datos que se están enviando
+
+        const response = await createAtencion(atencionData);
+        alert(response.data.message);
+        resetForm();
+    } catch (error) {
+        console.error('Error creating atencion', error); // Muestra el error en la consola para más detalles
+        alert('Error creating atencion');
+    }
+};
 </script>
 
 <template>
@@ -90,7 +127,7 @@ const solucion = ref([
                 <div class="p-fluid mt-3">
                     <FloatLabel>
                         <Dropdown id="dropdown" :options="tipos" v-model="value1" optionLabel="name"></Dropdown>
-                        <label for="dropdown">Elige ua opción</label>
+                        <label for="dropdown">Elige una opción</label>
                     </FloatLabel>
                     <br>
                     <FloatLabel>
@@ -151,10 +188,37 @@ const solucion = ref([
                 <h5>Tipo de problema</h5>
                 <div class="p-fluid mt-3">
                     <FloatLabel>
-                        <TreeSelect v-model="value9" :options="treeSelectNodes" placeholder="Select Item"></TreeSelect>
-                        <label for="inputnumber">Problema</label>
+                        <Dropdown id="dropdown" :options="principal" v-model="value9" optionLabel="name"></Dropdown>
+                        <label for="dropdown">Elige una opción</label>
                     </FloatLabel>
                 </div>
+                <template v-if="value9 && value9.code === 'P'">
+                    <div class="p-fluid mt-3">
+                        <FloatLabel>
+                            <Dropdown id="planilla-options" :options="planillaOptions" v-model="subProblema"
+                                optionLabel="name"></Dropdown>
+                            <label for="planilla-options">Problemas Planillas</label>
+                        </FloatLabel>
+                    </div>
+                </template>
+                <template v-if="value9 && value9.code === 'R'">
+                    <div class="p-fluid mt-3">
+                        <FloatLabel>
+                            <Dropdown id="roe-options" :options="roeOptions" v-model="subProblema" optionLabel="name">
+                            </Dropdown>
+                            <label for="roe-options">Problemas ROE</label>
+                        </FloatLabel>
+                    </div>
+                </template>
+                <template v-if="value9 && value9.code === 'T'">
+                    <div class="p-fluid mt-3">
+                        <FloatLabel>
+                            <Dropdown id="trabajador-options" :options="trabajadorOptions" v-model="subProblema"
+                                optionLabel="name"></Dropdown>
+                            <label for="trabajador-options">Problemas Trabajadores</label>
+                        </FloatLabel>
+                    </div>
+                </template>
             </div>
         </div>
         <div class="field col md:col-4">
@@ -179,7 +243,11 @@ const solucion = ref([
                         <Dropdown id="dropdown" :options="solucion" v-model="value11" optionLabel="name"></Dropdown>
                         <label for="dropdown">Estado</label>
                     </FloatLabel>
+                    <div class="p-fluid mt-3">
+                        <Button label="Registrar" class="mr-2 mb-2" @click="handleSubmit"></Button>
+                    </div>
                 </div>
+
             </div>
         </div>
     </div>

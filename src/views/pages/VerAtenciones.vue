@@ -1,86 +1,64 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { FilterMatchMode, FilterOperator } from 'primevue/api';
+import { getUserAtenciones, updateAtencion } from '@/services/atencionService';
+
 
 const value1 = ref(null);
 const value2 = ref(null);
 const value3 = ref(null);
 const value4 = ref(null);
-const value5 = ref(null);
-const value6 = ref(null);
-const value7 = ref(null);
+const value5 = ref('');
+const value6 = ref('');
+const value7 = ref('');
 const value8 = ref(null);
 const value9 = ref(null);
 const value10 = ref(null);
 const value11 = ref(null);
-const atencion = ref({
-    tipo: '',
-    date: '',
-    nit: '',
-    matricula: '',
-    empresa: '',
-    nombreCompleto: '',
-    correo: '',
-    telefono: '',
-    problema: '',
-    estado: ''
-});
+const subProblema = ref(null);
+const atenciones = ref([]);
+const loading1 = ref(false);
 
-const problemas = ref([
-    {
-        key: '1', label: 'Planillas', data: 'Planillas', children: [
-            { key: '1-1', label: 'Mensual', data: 'Mensual' },
-            { key: '1-2', label: 'Retroactiva', data: 'Retroactiva' },
-            { key: '1-3', label: 'Aguinaldo', data: 'Aguinaldo' },
-            { key: '1-4', label: 'Rectificación', data: 'Rectificación' },
-            { key: '1-5', label: 'Declaración en cero', data: 'Declaración en cero' },
-            { key: '1-6', label: 'Tipo de declaración', data: 'Tipo de declaración' },
-            { key: '1-7', label: 'No figura sucursal', data: 'No figura sucursal' },
-            { key: '1-8', label: 'Incumplimento de declaración', data: 'Incumplimento de declaración' },
-            {
-                key: '1-9', label: 'Fuera de plazo', data: 'Fuera de plazo', children: [
-                    { key: '1-9-1', label: 'Minera', data: 'Minera' },
-                    { key: '1-9-2', label: 'Publica', data: 'Publica' }
-                ]
-            },
-            {
-                key: '1-10', label: 'Error al importar', data: 'Error al importar', children: [
-                    { key: '1-10-1', label: 'Encabezados', data: 'Encabezados' },
-                    { key: '1-10-2', label: 'Separadores', data: 'Separadores' },
-                    { key: '1-10-3', label: 'Decimales', data: 'Decimales' },
-                    { key: '1-10-4', label: 'Nacionalidad', data: 'Nacionalidad' }
-                ]
-            },
-            {
-                key: '1-11', label: 'Trabajadores', data: 'Trabajadores', children: [
-                    { key: '1-11-1', label: 'Jubilado', data: 'Jubilado' },
-                    { key: '1-11-2', label: 'Retiro de trabajador', data: 'Retiro de trabajador' },
-                    { key: '1-11-3', label: 'Validar dependiente', data: 'Validar dependiente' },
-                    { key: '1-11-4', label: 'Validar trabajador', data: 'Validar trabajador' }
-                ]
-            }
-        ]
-    },
-    {
-        key: '2', label: 'ROE', data: 'ROE', children: [
-            { key: '2-1', label: 'Dar de baja el ROE', data: 'Dar de baja el ROE' },
-            { key: '2-2', label: 'Correo de confirmación', data: 'Correo de confirmación' },
-            { key: '2-3', label: 'Multa RM N105/18', data: 'Multa RM N105/18' },
-            { key: '2-4', label: 'Inicio de actividades', data: 'Inicio de actividades' },
-            { key: '2-5', label: 'Sucursal inactiva', data: 'Sucursal inactiva' },
-            { key: '2-6', label: 'Inscripción al ROE', data: 'Inscripción al ROE' },
-            { key: '2-7', label: 'Pendiente de firma', data: 'Pendiente de firma' },
-            {
-                key: '2-8', label: 'Actualizar ROE', data: 'Actualizar ROE', children: [
-                    { key: '2-8-1', label: 'Error interno', data: 'Error interno' },
-                    { key: '2-8-2', label: 'Representante legal', data: 'Representante legal' },
-                ]
-            }
-        ]
-    },
-    { key: '3', label: 'Falla interoperabilidad', data: 'Falla interoperabilidad' },
-    { key: '4', label: 'Contraseña', data: 'Contraseña' },
-    { key: '5', label: 'Otro', data: 'Otro' }
+const principal = ref([
+    { name: 'Planillas', code: 'P' },
+    { name: 'ROE', code: 'R' },
+    { name: 'Trabajadores', code: 'T' },
+    { name: 'Falla interoperabilidad', code: 'F' },
+    { name: 'Contraseña', code: 'C' },
+    { name: 'Otro', code: 'O' }
+]);
+
+const planillaOptions = ref([
+    { name: 'Mensual', code: '1' },
+    { name: 'Retroactiva', code: '2' },
+    { name: 'Aguinaldo', code: '3' },
+    { name: 'Rectificación', code: '4' },
+    { name: 'Fuera de plazo', code: '5' },
+    { name: 'Declaración en cero', code: '6' },
+    { name: 'Tipo de declaración', code: '7' },
+    { name: 'No figura sucursal', code: '8' },
+    { name: 'Incumplimiento de declaración', code: '9' },
+    { name: 'Error al importar', code: '10' }
+]);
+
+const roeOptions = ref([
+    { name: 'Dar de baja el ROE', code: '1' },
+    { name: 'Correo de confirmación', code: '2' },
+    { name: 'Multa RM°105/18', code: '3' },
+    { name: 'Inicio de actividades', code: '4' },
+    { name: 'Sucursal inactiva', code: '5' },
+    { name: 'Inscripción al ROE', code: '6' },
+    { name: 'Pendiente de firma', code: '7' },
+    { name: 'Actualizar ROE', code: '8' },
+    { name: 'Error interno', code: '9' },
+    { name: 'Representante legal', code: '10' }
+]);
+
+const trabajadorOptions = ref([
+    { name: 'No es jubilado', code: '1' },
+    { name: 'Retiro de trabajador', code: '2' },
+    { name: 'No valida dependiente', code: '3' },
+    { name: 'No valida trabajador', code: '4' }
 ]);
 
 const tipos = ref([
@@ -93,49 +71,6 @@ const solucion = ref([
     { name: 'Solucionado', code: 'S' },
     { name: 'Pendiente', code: 'PE' }
 ]);
-
-
-
-const editarAtencion = ref(false);
-const submitted = ref(false);
-
-
-const hideDialog = () => {
-    editarAtencion.value = false;
-    submitted.value = false;
-    atencion.value = {
-        tipo: '',
-        date: '',
-        nit: '',
-        matricula: '',
-        empresa: '',
-        nombreCompleto: '',
-        correo: '',
-        telefono: '',
-        problema: '',
-        estado: ''
-    };
-};
-
-const guardarCambios = () => {
-    submitted.value = true;
-    if (atencion.value.tipo && atencion.value.date && atencion.value.nit && atencion.value.empresa && atencion.value.nombreCompleto && atencion.value.correo && atencion.value.telefono && atencion.value.problema && atencion.value.estado) {
-        //Nose porque chucha el toast no funciona xD
-        //toast.add({ severity: 'success', summary: 'Editado', detail: 'La información se editó con éxito', life: 3000 });
-        hideDialog();
-        // lógica para editar la atención...
-    } else {
-        //toast.add({ severity: 'error', summary: 'Error', detail: 'Por favor complete todos los campos', life: 3000 });
-    }
-    hideDialog();
-};
-
-const infoAtencion = (infoAtencion) => {
-    atencion.value = { ...infoAtencion }
-    editarAtencion.value = true;
-};
-
-
 const filtros = ref({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
     atencion: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
@@ -146,57 +81,86 @@ const filtros = ref({
     estado: { operator: FilterOperator.OR, constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }] }
 });
 
-const iniciarFiltros = () => {
-    filtros.value = {
-        global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-        atencion: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-        date: { value: null, matchMode: FilterMatchMode.DATE_IS },
-        nit: { value: null, matchMode: FilterMatchMode.EQUALS },
-        empresa: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-        telefono: { value: null, matchMode: FilterMatchMode.EQUALS },
-        estado: { value: null, matchMode: FilterMatchMode.EQUALS }
-    };
+const editarAtencion = ref(false);
+const selectedAtencion = ref(null);
+
+const loadAtenciones = async () => {
+    loading1.value = true;
+    try {
+        const userId = localStorage.getItem('userId');
+        const response = await getUserAtenciones(userId);
+        atenciones.value = response.data;
+    } catch (error) {
+        console.error('Error fetching atenciones:', error);
+    } finally {
+        loading1.value = false;
+    }
 };
 
-const limpiarFiltros = () => iniciarFiltros();
-
-
 const formatDate = (value) => {
-    return value.toLocaleDateString('es-ES', {
+    return new Date(value).toLocaleDateString('es-ES', {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric'
     });
 };
 
-
 const getSeverity = (status) => {
     switch (status) {
-        case 'pendiente':
+        case 'Pendiente':
             return 'danger';
-        case 'solucionado':
+        case 'Solucionado':
             return 'success';
         default:
             return 'info';
     }
 };
 
+const handleEditAtencion = (atencion) => {
+    selectedAtencion.value = { ...atencion };
+    value1.value = { name: atencion.tipo_atencion };
+    value2.value = new Date(atencion.fecha);
+    value3.value = atencion.nit;
+    value4.value = atencion.matricula;
+    value5.value = atencion.nombre_empresa;
+    value6.value = atencion.nombre_empleador;
+    value7.value = atencion.correo;
+    value8.value = atencion.telefono;
+    value9.value = { name: atencion.problema };
+    subProblema.value = atencion.subproblema ? { name: atencion.subproblema } : null;
+    value10.value = atencion.asistencia_remota;
+    value11.value = { name: atencion.estado };
+    editarAtencion.value = true;
+};
 
-const atenciones = ref([
-    { atencion: 'Correo', date: new Date('2024-06-18'), nit: 123456789, empresa: 'Gas y Gas', telefono: 71212888, estado: 'solucionado' },
-    { atencion: 'Telefono', date: new Date('2024-06-19'), nit: 987654321, empresa: 'ElectroMax', telefono: 69874512, estado: 'pendiente' },
-    { atencion: 'Presencial', date: new Date('2024-06-20'), nit: 111222333, empresa: 'Aguas Andinas', telefono: 65432178, estado: 'solucionado' },
-    { atencion: 'Correo', date: new Date('2024-06-21'), nit: 444555666, empresa: 'Supermercados Max', telefono: 78945612, estado: 'pendiente' },
-    { atencion: 'Telefono', date: new Date('2024-06-22'), nit: 777888999, empresa: 'CyberCafe Pro', telefono: 12312312, estado: 'solucionado' },
-    { atencion: 'Presencial', date: new Date('2024-06-23'), nit: 666777888, empresa: 'Librería Nacional', telefono: 45645645, estado: 'pendiente' },
-    { atencion: 'Correo', date: new Date('2024-06-24'), nit: 333444555, empresa: 'CineArte', telefono: 12121212, estado: 'solucionado' },
-    { atencion: 'Correo', date: new Date('2024-06-25'), nit: 222333444, empresa: 'Gimnasio Peak', telefono: 34343434, estado: 'pendiente' }
-]);
+const handleUpdateAtencion = async () => {
+    try {
+        const atencionData = {
+            fecha: value2.value,
+            tipo_atencion: value1.value.name,
+            nombre_empleador: value6.value,
+            correo: value7.value,
+            telefono: value8.value,
+            nombre_empresa: value5.value,
+            nit: value3.value,
+            matricula: value4.value,
+            problema: value9.value.name,
+            subproblema: subProblema.value ? subProblema.value.name : null,
+            estado: value11.value.name,
+            asistencia_remota: value10.value
+        };
+        const response = await updateAtencion(selectedAtencion.value.id_atencion, atencionData);
+        alert(response.data.message);
+        editarAtencion.value = false;
+        loadAtenciones();
+    } catch (error) {
+        alert('Error updating atencion');
+    }
+};
 
-
-const listaAtenciones = ref(atenciones.value);
-const loading1 = ref(false);
-
+onMounted(() => {
+    loadAtenciones();
+});
 </script>
 
 <template>
@@ -204,9 +168,10 @@ const loading1 = ref(false);
         <div class="col-12">
             <div class="card">
                 <h5>Mis Atenciones</h5>
-                <DataTable :value="listaAtenciones" :paginator="true" :rows="10" dataKey="id" :rowHover="true"
+                <DataTable :value="atenciones" :paginator="true" :rows="10" dataKey="id" :rowHover="true"
                     v-model:filters="filtros" filterDisplay="menu" :loading="loading1" :filters="filtros"
-                    :globalFilterFields="['atencion', 'nit', 'telefono', 'empresa', 'estado']" showGridlines>
+                    :globalFilterFields="['tipo_atencion', 'nit', 'telefono', 'nombre_empresa', 'estado']"
+                    showGridlines>
                     <template #header>
                         <div class="flex justify-content-between flex-column sm:flex-row">
                             <Button type="button" icon="pi pi-filter-slash" label="Limpiar" outlined
@@ -219,18 +184,18 @@ const loading1 = ref(false);
                     </template>
                     <template #empty> No se encontraron atenciones. </template>
                     <template #loading> Los datos se están cargando... </template>
-                    <Column field="atencion" header="Atención" style="min-width: 12rem">
+                    <Column field="tipo_atencion" header="Atención" style="min-width: 12rem">
                         <template #body="{ data }">
-                            {{ data.atencion }}
+                            {{ data.tipo_atencion }}
                         </template>
                         <template #filter="{ filterModel }">
                             <InputText type="text" v-model="filterModel.value" class="p-column-filter"
                                 placeholder="Buscar por atención" />
                         </template>
                     </Column>
-                    <Column header="Fecha" filterField="date" dataType="date" style="min-width: 10rem">
+                    <Column header="Fecha" filterField="fecha" dataType="date" style="min-width: 10rem">
                         <template #body="{ data }">
-                            {{ formatDate(data.date) }}
+                            {{ formatDate(data.fecha) }}
                         </template>
                         <template #filter="{ filterModel }">
                             <Calendar v-model="filterModel.value" dateFormat="dd/mm/yy" placeholder="dd/mm/yyyy" />
@@ -244,9 +209,9 @@ const loading1 = ref(false);
                             <InputNumber v-model="filterModel.value" inputId="withoutgrouping" :useGrouping="false" />
                         </template>
                     </Column>
-                    <Column field="empresa" header="Nombre empresa" style="min-width: 12rem">
+                    <Column field="nombre_empresa" header="Nombre empresa" style="min-width: 12rem">
                         <template #body="{ data }">
-                            {{ data.empresa }}
+                            {{ data.nombre_empresa }}
                         </template>
                         <template #filter="{ filterModel }">
                             <InputText type="text" v-model="filterModel.value" class="p-column-filter"
@@ -274,7 +239,7 @@ const loading1 = ref(false);
                         <template #body="slotProps">
                             <div style="text-align: center;">
                                 <Button icon="pi pi-pencil" severity="primary" rounded
-                                    @click="infoAtencion(slotProps.data)" />
+                                    @click="handleEditAtencion(slotProps.data)" />
                             </div>
                         </template>
                     </Column>
@@ -285,7 +250,7 @@ const loading1 = ref(false);
                         <h5>Tipo de atención</h5>
                         <FloatLabel>
                             <Dropdown id="dropdown" :options="tipos" v-model="value1" optionLabel="name"></Dropdown>
-                            <label for="dropdown">Elige ua opción</label>
+                            <label for="dropdown">Elige una opción</label>
                         </FloatLabel>
                         <br>
                         <FloatLabel>
@@ -329,20 +294,45 @@ const loading1 = ref(false);
                                 :useGrouping="false" />
                             <label for="inputtext">Número de teléfono</label>
                         </FloatLabel>
-
                     </div>
-
                     <div class="field">
                         <h5>Tipo de problema</h5>
                         <div class="p-fluid mt-3">
                             <FloatLabel>
-                                <TreeSelect v-model="value9" :options="problemas" placeholder="Select Item">
-                                </TreeSelect>
-                                <label for="inputnumber">Problema</label>
+                                <Dropdown id="dropdown" :options="principal" v-model="value9" optionLabel="name">
+                                </Dropdown>
+                                <label for="dropdown">Elige una opción</label>
                             </FloatLabel>
                         </div>
+                        <template v-if="value9 && value9.code === 'P'">
+                            <div class="p-fluid mt-3">
+                                <FloatLabel>
+                                    <Dropdown id="planilla-options" :options="planillaOptions" v-model="subProblema"
+                                        optionLabel="name"></Dropdown>
+                                    <label for="planilla-options">Problemas Planillas</label>
+                                </FloatLabel>
+                            </div>
+                        </template>
+                        <template v-if="value9 && value9.code === 'R'">
+                            <div class="p-fluid mt-3">
+                                <FloatLabel>
+                                    <Dropdown id="roe-options" :options="roeOptions" v-model="subProblema"
+                                        optionLabel="name">
+                                    </Dropdown>
+                                    <label for="roe-options">Problemas ROE</label>
+                                </FloatLabel>
+                            </div>
+                        </template>
+                        <template v-if="value9 && value9.code === 'T'">
+                            <div class="p-fluid mt-3">
+                                <FloatLabel>
+                                    <Dropdown id="trabajador-options" :options="trabajadorOptions" v-model="subProblema"
+                                        optionLabel="name"></Dropdown>
+                                    <label for="trabajador-options">Problemas Trabajadores</label>
+                                </FloatLabel>
+                            </div>
+                        </template>
                     </div>
-
                     <div class="field">
                         <h5>¿Se realizó asistencia remota?</h5>
                         <div class="field-radiobutton mb-0">
@@ -355,9 +345,8 @@ const loading1 = ref(false);
                             <label for="noRemoto">No</label>
                         </div>
                     </div>
-
                     <div class="field">
-                        <h5>Tipo de problema</h5>
+                        <h5>Estado</h5>
                         <div class="p-fluid mt-3">
                             <FloatLabel>
                                 <Dropdown id="dropdown" :options="solucion" v-model="value11" optionLabel="name">
@@ -367,8 +356,8 @@ const loading1 = ref(false);
                         </div>
                     </div>
                     <template #footer>
-                        <Button label="Cancelar" icon="pi pi-times" text="" @click="hideDialog" />
-                        <Button label="Guardar" icon="pi pi-check" text="" @click="guardarCambios" />
+                        <Button label="Cancelar" icon="pi pi-times" text="" @click="editarAtencion = false" />
+                        <Button label="Guardar" icon="pi pi-check" text="" @click="handleUpdateAtencion" />
                     </template>
                 </Dialog>
             </div>

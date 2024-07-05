@@ -1,3 +1,4 @@
+<!-- eslint-disable vue/multi-word-component-names -->
 <template>
     <div
         class="surface-ground flex align-items-center justify-content-center min-h-screen min-w-screen overflow-hidden">
@@ -11,14 +12,14 @@
                     </div>
 
                     <div>
-                        <label for="email1" class="block text-900 text-xl font-medium mb-2">Usuario</label>
-                        <InputText id="email1" type="text" placeholder="Username" class="w-full md:w-30rem mb-5"
-                            style="padding: 1rem" v-model="email" />
+                        <label for="username" class="block text-900 text-xl font-medium mb-2">Usuario</label>
+                        <InputText id="username" type="text" placeholder="Username" class="w-full md:w-30rem mb-5"
+                            style="padding: 1rem" v-model="username" />
 
                         <label for="password1" class="block text-900 font-medium text-xl mb-2">Contraseña</label>
                         <Password id="password1" v-model="password" placeholder="Contraseña" :toggleMask="true"
                             class="w-full mb-3" inputClass="w-full" :inputStyle="{ padding: '1rem' }"></Password>
-                        <Button label="Iniciar Sesión" class="w-full p-3 text-xl"></Button>
+                        <Button label="Iniciar Sesión" class="w-full p-3 text-xl" @click="login"></Button>
                     </div>
                 </div>
             </div>
@@ -28,10 +29,26 @@
 
 <script setup>
 import { ref } from 'vue';
-const email = ref('');
+import { useRouter } from 'vue-router';
+import { loginUser } from '@/services/userService';
+
+const username = ref('');
 const password = ref('');
-const checked = ref(false);
+const router = useRouter();
+
+const login = async () => {
+    try {
+        const response = await loginUser({ username: username.value, password: password.value });
+        localStorage.setItem('token', response.data.accessToken);
+        console.log(response)
+        router.push('/dashboard');
+    } catch (error) {
+        console.error('Error during login:', error);
+        alert('Invalid credentials');
+    }
+};
 </script>
+
 <style scoped>
 .pi-eye {
     transform: scale(1.6);
