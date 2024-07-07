@@ -31,3 +31,41 @@ export const getPasanteById = (id) => {
 export const updatePasante = (id, pasanteData) => {
   return api.put(`/pasantes/${id}`, pasanteData)
 }
+
+export const getResumenAtenciones = () => {
+  return api.get('/atenciones-usuario')
+}
+
+export const getPendientesUsuarios = () => {
+  return api.get('/pendientes-usuario')
+}
+
+export async function fetchSolucionados(month, year) {
+  const response = await api.get(`/solucionados-mes?month=${month}&year=${year}`)
+  return response
+}
+
+export async function fetchPendientes(month, year) {
+  const response = await api.get(`/pendientes-mes?month=${month}&year=${year}`)
+  return response
+}
+
+export async function getAtencionesMes() {
+  const response = await api.get('/atenciones-mes')
+  return response.data
+}
+
+export async function getPlanillas() {
+  const response = await api.get('/total-planillas')
+  return response.data
+}
+
+export async function getRoe() {
+  const response = await api.get('/total-roe')
+  return response.data
+}
+
+export async function getTrabajadores() {
+  const response = await api.get('/total-trabajadores')
+  return response.data
+}

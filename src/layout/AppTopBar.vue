@@ -1,16 +1,28 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { useLayout } from '@/layout/composables/layout';
+import { getUserInfo } from '@/services/userService';
 
 
 const { onMenuToggle } = useLayout();
-
+const nombre = ref('');
 const outsideClickListener = ref(null);
 const topbarMenuActive = ref(false);
 
+const info = async () => {
+    try {
+        const response = await getUserInfo();
+        const user = response.data;
+        nombre.value = user.nombre;
+    } catch (error) {
+        console.error('Error fetching user info:', error);
+        localStorage.removeItem('token');
+    }
+};
 
 onMounted(() => {
     bindOutsideClickListener();
+    info();
 });
 
 onBeforeUnmount(() => {
@@ -67,6 +79,9 @@ const isOutsideClicked = (event) => {
         <button class="p-link layout-topbar-menu-button layout-topbar-button" @click="onTopBarMenuButton()">
 
         </button>
+        <div class="layout-topbar-menu">
+            <h5>{{ nombre }}</h5>
+        </div>
     </div>
 </template>
 

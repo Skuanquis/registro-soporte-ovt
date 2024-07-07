@@ -1,8 +1,10 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <script setup>
-/*import { onMounted, reactive, ref, watch } from 'vue';*/
-import { ref, watch } from 'vue';
+
+import { ref, watch, onMounted } from 'vue';
 import { useLayout } from '@/layout/composables/layout';
+import { getResumenAtenciones, getPendientesUsuarios } from '@/services/userService';
+import { fetchSolucionados, fetchPendientes, getAtencionesMes, getPlanillas, getRoe, getTrabajadores } from '@/services/userService';
 
 
 const { layoutConfig } = useLayout();
@@ -11,19 +13,44 @@ let textColor = documentStyle.getPropertyValue('--text-color');
 let textColorSecondary = documentStyle.getPropertyValue('--text-color-secondary');
 let surfaceBorder = documentStyle.getPropertyValue('--surface-border');
 
-const lineData = ref(null);
-const pieData = ref(null);
-const doughnutData = ref(null);
-const polarData = ref(null);
-const barData = ref(null);
-const radarData = ref(null);
+const resumenAtenciones = ref({});
+const atencionesPendientes = ref({});
 
-const lineOptions = ref(null);
-const pieOptions = ref(null);
-const doughnutOptions = ref(null);
-const polarOptions = ref(null);
+onMounted(async () => {
+    try {
+        const response = await getResumenAtenciones();
+        response.data.forEach(item => {
+            resumenAtenciones.value[item.tipo_atencion] = item.total;
+        });
+
+        const responsePendientes = await getPendientesUsuarios();
+        responsePendientes.data.forEach(item => {
+            atencionesPendientes.value[item.tipo_atencion] = item.cantidad;
+        });
+    } catch (error) {
+        console.error('Error fetching atenciones summary:', error);
+    }
+});
+
+const lineData = ref({});
+const pieDataPlanillas = ref({});
+const pieDataRoe = ref({});
+const pieDataTrabajadores = ref({});
+//const doughnutData = ref(null);
+//const polarData = ref(null);
+const barData = ref(null);
+//const radarData = ref(null);
+
+const lineOptions = ref({});
+const pieOptionsPlanillas = ref({});
+const pieOptionsRoe = ref({});
+const pieOptionsTrabajadores = ref({});
+//const doughnutOptions = ref(null);
+//const polarOptions = ref(null);
 const barOptions = ref(null);
-const radarOptions = ref(null);
+//const radarOptions = ref(null);
+
+
 
 const setColorOptions = () => {
     documentStyle = getComputedStyle(document.documentElement);
@@ -32,27 +59,127 @@ const setColorOptions = () => {
     surfaceBorder = documentStyle.getPropertyValue('--surface-border');
 };
 
-const setChart = () => {
-    barData.value = {
-        labels: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio',],
+const setLineChart = async () => {
+    const today = new Date();
+    const currentYear = today.getFullYear();
+    const currentMonth = today.getMonth();
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    const labels = Array.from({ length: daysInMonth }, (_, i) => (i + 1).toString());
+
+    const responseSolucionados = await fetchSolucionados(currentMonth, currentYear);
+    const solucionadosData = responseSolucionados.data;
+    const responsePendientes = await fetchPendientes(currentMonth, currentYear);
+    const pendientesData = responsePendientes.data;
+
+    const dataSolucionados = new Array(daysInMonth).fill(0);
+    const dataPendientes = new Array(daysInMonth).fill(0);
+
+    solucionadosData.forEach(item => {
+        if (item.dia <= daysInMonth) {
+            dataSolucionados[item.dia - 1] = item.solucionados;
+        }
+    });
+
+    pendientesData.forEach(item => {
+        if (item.dia <= daysInMonth) {
+            dataPendientes[item.dia - 1] = item.pendientes;
+        }
+    });
+
+    lineData.value = {
+        labels,
         datasets: [
             {
-                label: 'Correo',
+                label: 'Casos solucionados',
+                data: dataSolucionados,
+                fill: false,
                 backgroundColor: documentStyle.getPropertyValue('--primary-700'),
                 borderColor: documentStyle.getPropertyValue('--primary-700'),
-                data: [65, 59, 80, 81, 56, 55, 40]
+                tension: 0.4
             },
             {
-                label: 'Telefono',
-                backgroundColor: documentStyle.getPropertyValue('--primary-400'),
-                borderColor: documentStyle.getPropertyValue('--primary-400'),
-                data: [28, 48, 40, 19, 86, 27, 90]
+                label: 'Casos pendientes',
+                data: dataPendientes,
+                fill: false,
+                backgroundColor: documentStyle.getPropertyValue('--primary-300'),
+                borderColor: documentStyle.getPropertyValue('--primary-300'),
+                tension: 0.4
+            }
+        ]
+    };
+
+    lineOptions.value = {
+        plugins: {
+            legend: {
+                labels: {
+                    fontColor: textColor
+                }
+            }
+        },
+        scales: {
+            x: {
+                type: 'linear',
+                ticks: {
+                    stepSize: 1,
+                    color: '#555',
+                    callback: function (value) {
+                        if (Math.floor(value) === value) {
+                            return value;
+                        }
+                    }
+                },
+                grid: {
+                    display: false
+                },
+                title: {
+                    display: true,
+                    text: 'Día del mes',
+                    color: '#111',
+                    font: {
+                        size: 15
+                    }
+                }
             },
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    color: '#555',
+                    stepSize: 1
+                },
+                grid: {
+                    color: 'rgba(200, 200, 200, 0.8)',
+                    borderDash: [5, 5]
+                },
+                title: {
+                    display: true,
+                    text: 'Número de casos',
+                    color: '#111',
+                    font: {
+                        size: 15
+                    }
+                }
+            }
+        },
+        interaction: {
+            mode: 'nearest',
+            intersect: false
+        }
+    };
+}
+
+
+const setBarChart = async () => {
+    const atencionesData = await getAtencionesMes();
+    const labels = atencionesData.map(atencion => atencion.tipo_atencion);
+    const data = atencionesData.map(atencion => atencion.total);
+    barData.value = {
+        labels: labels,
+        datasets: [
             {
-                label: 'Presencial',
-                backgroundColor: documentStyle.getPropertyValue('--primary-200'),
-                borderColor: documentStyle.getPropertyValue('--primary-200'),
-                data: [18, 25, 75, 24, 28, 100, 17]
+                label: 'Atenciones realizadas',
+                backgroundColor: [documentStyle.getPropertyValue('--primary-700'), documentStyle.getPropertyValue('--primary-400'), documentStyle.getPropertyValue('--primary-200')],
+                borderColor: [documentStyle.getPropertyValue('--primary-700'), documentStyle.getPropertyValue('--primary-400'), documentStyle.getPropertyValue('--primary-200')],
+                data: data
             }
         ]
     };
@@ -67,7 +194,8 @@ const setChart = () => {
         scales: {
             x: {
                 ticks: {
-                    color: textColorSecondary,
+                    stepSize: 1,
+                    color: '#555',
                     font: {
                         weight: 500
                     }
@@ -79,7 +207,13 @@ const setChart = () => {
             },
             y: {
                 ticks: {
-                    color: textColorSecondary
+                    stepSize: 1,
+                    color: '#555',
+                    callback: function (value) {
+                        if (Math.floor(value) === value) {
+                            return value;
+                        }
+                    }
                 },
                 grid: {
                     color: surfaceBorder,
@@ -88,7 +222,73 @@ const setChart = () => {
             }
         }
     };
+}
 
+const setPiePlanillas = async () => {
+    const data = await getPlanillas();
+    pieDataPlanillas.value = {
+        labels: data.map(item => item.subproblema),
+        datasets: [{
+            data: data.map(item => item.total),
+            backgroundColor: ['#6366F1', '#A855F7', '#2DD4BF'],
+            hoverBackgroundColor: ['#4F46E5', '#9333EA', '#14B8A6']
+        }]
+    };
+    pieOptionsPlanillas.value = {
+        plugins: {
+            legend: {
+                labels: {
+                    usePointStyle: true,
+                    color: 'black' // Asumiendo que tienes esta variable disponible
+                }
+            }
+        }
+    }
+}
+const setPieRoe = async () => {
+    const data = await getRoe();
+    pieDataRoe.value = {
+        labels: data.map(item => item.subproblema),
+        datasets: [{
+            data: data.map(item => item.total),
+            backgroundColor: ['#6366F1', '#A855F7', '#2DD4BF'],
+            hoverBackgroundColor: ['#4F46E5', '#9333EA', '#14B8A6']
+        }]
+    };
+    pieOptionsRoe.value = {
+        plugins: {
+            legend: {
+                labels: {
+                    usePointStyle: true,
+                    color: 'black' // Asumiendo que tienes esta variable disponible
+                }
+            }
+        }
+    }
+}
+const setPieTrabajadores = async () => {
+    const data = await getTrabajadores();
+    pieDataTrabajadores.value = {
+        labels: data.map(item => item.subproblema),
+        datasets: [{
+            data: data.map(item => item.total),
+            backgroundColor: ['#6366F1', '#A855F7', '#2DD4BF'],
+            hoverBackgroundColor: ['#4F46E5', '#9333EA', '#14B8A6']
+        }]
+    };
+    pieOptionsPlanillas.value = {
+        plugins: {
+            legend: {
+                labels: {
+                    usePointStyle: true,
+                    color: 'black' // Asumiendo que tienes esta variable disponible
+                }
+            }
+        }
+    }
+}
+/*const setChart = () => {
+    
     pieData.value = {
         labels: ['Mensual', 'Retroactivo', 'Rectificación'],
         datasets: [
@@ -133,57 +333,7 @@ const setChart = () => {
         }
     };
 
-    lineData.value = {
-        labels: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25', '26', '27', '28', '29', '30', '31'],
-        datasets: [
-            {
-                label: 'Casos solucionados',
-                data: [65, 59, 80, 81, 56, 55, 40, 23, 45, 12, 65, 59, 80, 81, 56, 55, 40, 23, 45, 12, 65, 59, 80, 81, 56, 55, 40, 23, 45, 12, 74],
-                fill: false,
-                backgroundColor: documentStyle.getPropertyValue('--primary-700'),
-                borderColor: documentStyle.getPropertyValue('--primary-700'),
-                tension: 0.4
-            },
-            {
-                label: 'Casos pendientes',
-                data: [28, 48, 40, 19, 86, 27, 3, 42, 8, 65, 28, 48, 40, 19, 86, 27, 3, 42, 8, 65, 28, 48, 40, 19, 86, 27, 3, 42, 8, 65, 15],
-                fill: false,
-                backgroundColor: documentStyle.getPropertyValue('--primary-300'),
-                borderColor: documentStyle.getPropertyValue('--primary-300'),
-                tension: 0.4
-            }
-        ]
-    };
-
-    lineOptions.value = {
-        plugins: {
-            legend: {
-                labels: {
-                    fontColor: textColor
-                }
-            }
-        },
-        scales: {
-            x: {
-                ticks: {
-                    color: textColorSecondary
-                },
-                grid: {
-                    color: surfaceBorder,
-                    drawBorder: false
-                }
-            },
-            y: {
-                ticks: {
-                    color: textColorSecondary
-                },
-                grid: {
-                    color: surfaceBorder,
-                    drawBorder: false
-                }
-            }
-        }
-    };
+    
 
     polarData.value = {
         datasets: [
@@ -244,13 +394,17 @@ const setChart = () => {
             }
         }
     };
-};
+};*/
 
 watch(
     layoutConfig.theme,
     () => {
         setColorOptions();
-        setChart();
+        setLineChart();
+        setBarChart();
+        setPiePlanillas();
+        setPieRoe();
+        setPieTrabajadores();
     },
     { immediate: true }
 );
@@ -263,15 +417,15 @@ watch(
                 <div class="flex justify-content-between mb-3">
                     <div>
                         <span class="block text-500 font-medium mb-3">Correos</span>
-                        <div class="text-900 font-medium text-xl">152</div>
+                        <div class="text-900 font-medium text-xl">{{ resumenAtenciones['Correo'] || 0 }}</div>
                     </div>
                     <div class="flex align-items-center justify-content-center bg-blue-100 border-round"
                         style="width: 2.5rem; height: 2.5rem">
                         <i class="pi pi-envelope text-blue-500 text-xl"></i>
                     </div>
                 </div>
-                <span class="text-green-500 font-medium">24 </span>
-                <span class="text-500">pendientes</span>
+                <span class="text-red-500 font-medium">{{ atencionesPendientes['Correo'] || 0 }} </span>
+                <span class="text-500"> pendientes</span>
             </div>
         </div>
         <div class="col-12 lg:col-6 xl:col-3">
@@ -279,15 +433,15 @@ watch(
                 <div class="flex justify-content-between mb-3">
                     <div>
                         <span class="block text-500 font-medium mb-3">Llamadas</span>
-                        <div class="text-900 font-medium text-xl">54</div>
+                        <div class="text-900 font-medium text-xl">{{ resumenAtenciones['Telefono'] || 0 }}</div>
                     </div>
                     <div class="flex align-items-center justify-content-center bg-orange-100 border-round"
                         style="width: 2.5rem; height: 2.5rem">
                         <i class="pi pi-phone text-orange-500 text-xl"></i>
                     </div>
                 </div>
-                <span class="text-green-500 font-medium"></span>
-                <span class="text-500">nose que poner xD</span>
+                <span class="text-red-500 font-medium">{{ atencionesPendientes['Telefono'] || 0 }}</span>
+                <span class="text-500"> pendientes</span>
             </div>
         </div>
         <div class="col-12 lg:col-6 xl:col-3">
@@ -295,15 +449,15 @@ watch(
                 <div class="flex justify-content-between mb-3">
                     <div>
                         <span class="block text-500 font-medium mb-3">Presencial</span>
-                        <div class="text-900 font-medium text-xl">10</div>
+                        <div class="text-900 font-medium text-xl">{{ resumenAtenciones['Presencial'] || 0 }}</div>
                     </div>
                     <div class="flex align-items-center justify-content-center bg-cyan-100 border-round"
                         style="width: 2.5rem; height: 2.5rem">
                         <i class="pi pi-building text-cyan-500 text-xl"></i>
                     </div>
                 </div>
-                <span class="text-green-500 font-medium">5 </span>
-                <span class="text-500">resueltos</span>
+                <span class="text-red-500 font-medium">{{ atencionesPendientes['Presenciales'] || 0 }}</span>
+                <span class="text-500"> pendientes</span>
             </div>
         </div>
         <div class="col-12 lg:col-6 xl:col-3">
@@ -338,38 +492,20 @@ watch(
         </div>
         <div class="col-12 xl:col-6">
             <div class="card flex flex-column align-items-center">
-                <h5 class="text-left w-full">Inconvenientes declaracion de planillas (Necesitamos ideas)</h5>
-                <Chart type="pie" :data="pieData" :options="pieOptions"></Chart>
+                <h5 class="text-left w-full">Inconvenientes declaracion de planillas</h5>
+                <Chart type="pie" :data="pieDataPlanillas" :options="pieOptionsPlanillas"></Chart>
             </div>
         </div>
         <div class="col-12 xl:col-6">
             <div class="card flex flex-column align-items-center">
-                <h5 class="text-left w-full">Inconvenientes en el ROE (Necesitamos ideas x2)</h5>
-                <Chart type="pie" :data="pieData" :options="pieOptions"></Chart>
+                <h5 class="text-left w-full">Inconvenientes con el ROE</h5>
+                <Chart type="pie" :data="pieDataRoe" :options="pieOptionsRoe"></Chart>
             </div>
         </div>
         <div class="col-12 xl:col-6">
             <div class="card flex flex-column align-items-center">
-                <h5 class="text-left w-full">Otros inconvenientes (Necesitamos ideas x3)</h5>
-                <Chart type="pie" :data="pieData" :options="pieOptions"></Chart>
-            </div>
-        </div>
-        <div class="col-12 xl:col-6">
-            <div class="card flex flex-column align-items-center">
-                <h5 class="text-left w-full">Casos solucionados</h5>
-                <Chart type="doughnut" :data="doughnutData" :options="doughnutOptions"></Chart>
-            </div>
-        </div>
-        <div class="col-12 xl:col-6">
-            <div class="card flex flex-column align-items-center">
-                <h5 class="text-left w-full">Total de casos atendidos</h5>
-                <Chart type="polarArea" :data="polarData" :options="polarOptions"></Chart>
-            </div>
-        </div>
-        <div class="col-12 xl:col-6">
-            <div class="card flex flex-column align-items-center">
-                <h5 class="text-left w-full">Frecuencia de problemas</h5>
-                <Chart type="radar" :data="radarData" :options="radarOptions"></Chart>
+                <h5 class="text-left w-full">Inconvenientes con trabajadores</h5>
+                <Chart type="pie" :data="pieDataTrabajadores" :options="pieOptionsTrabajadores"></Chart>
             </div>
         </div>
     </div>

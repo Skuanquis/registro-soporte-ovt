@@ -2,7 +2,7 @@
 import InputNumber from 'primevue/inputnumber';
 import { ref } from 'vue';
 import { createAtencion } from '../../services/atencionService';
-import * as jwt_decode from 'jwt-decode'; // Importa todo el módulo y luego usa la función específica
+import { jwtDecode } from "jwt-decode";
 
 const value1 = ref(null);
 const value2 = ref(null);
@@ -87,10 +87,9 @@ const resetForm = () => {
 
 const handleSubmit = async () => {
     try {
-        const token = localStorage.getItem('accessToken');
-        const decoded = jwt_decode.default(token);
+        const token = localStorage.getItem('token');
+        const decoded = jwtDecode(token);
         const id_usuario = decoded.id;
-
         const atencionData = {
             id_usuario,
             fecha: value2.value,
