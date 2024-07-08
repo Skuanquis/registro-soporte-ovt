@@ -69,3 +69,8 @@ export async function getTrabajadores() {
   const response = await api.get('/total-trabajadores')
   return response.data
 }
+
+export async function getTotalOtros() {
+  const response = await api.get('/total-otros')
+  return response.data
+}

@@ -4,7 +4,7 @@
 import { ref, watch, onMounted } from 'vue';
 import { useLayout } from '@/layout/composables/layout';
 import { getResumenAtenciones, getPendientesUsuarios } from '@/services/userService';
-import { fetchSolucionados, fetchPendientes, getAtencionesMes, getPlanillas, getRoe, getTrabajadores } from '@/services/userService';
+import { fetchSolucionados, fetchPendientes, getAtencionesMes, getPlanillas, getRoe, getTrabajadores, getTotalOtros } from '@/services/userService';
 
 
 const { layoutConfig } = useLayout();
@@ -36,7 +36,7 @@ const lineData = ref({});
 const pieDataPlanillas = ref({});
 const pieDataRoe = ref({});
 const pieDataTrabajadores = ref({});
-//const doughnutData = ref(null);
+const doughnutData = ref(null);
 //const polarData = ref(null);
 const barData = ref(null);
 //const radarData = ref(null);
@@ -45,7 +45,7 @@ const lineOptions = ref({});
 const pieOptionsPlanillas = ref({});
 const pieOptionsRoe = ref({});
 const pieOptionsTrabajadores = ref({});
-//const doughnutOptions = ref(null);
+const doughnutOptions = ref(null);
 //const polarOptions = ref(null);
 const barOptions = ref(null);
 //const radarOptions = ref(null);
@@ -230,8 +230,8 @@ const setPiePlanillas = async () => {
         labels: data.map(item => item.subproblema),
         datasets: [{
             data: data.map(item => item.total),
-            backgroundColor: ['#6366F1', '#A855F7', '#2DD4BF'],
-            hoverBackgroundColor: ['#4F46E5', '#9333EA', '#14B8A6']
+            backgroundColor: ['#264653', '#287271', '#2A9D8F', '#E9C46A', '#F4A261', '#E76F51', '#0C7075', '#0F969C', '#6DA5C0', '#294D61'],
+            hoverBackgroundColor: ['#2a526a', '#2d8880', '#33b59b', '#efd07e', '#f7ae78', '#ec7d5d', '#107f82', '#13a6ac', '#79b2cd', '#2e5970']
         }]
     };
     pieOptionsPlanillas.value = {
@@ -239,7 +239,7 @@ const setPiePlanillas = async () => {
             legend: {
                 labels: {
                     usePointStyle: true,
-                    color: 'black' // Asumiendo que tienes esta variable disponible
+                    color: 'black'
                 }
             }
         }
@@ -251,8 +251,8 @@ const setPieRoe = async () => {
         labels: data.map(item => item.subproblema),
         datasets: [{
             data: data.map(item => item.total),
-            backgroundColor: ['#6366F1', '#A855F7', '#2DD4BF'],
-            hoverBackgroundColor: ['#4F46E5', '#9333EA', '#14B8A6']
+            backgroundColor: ['#264653', '#287271', '#2A9D8F', '#E9C46A', '#F4A261', '#E76F51', '#0C7075', '#0F969C', '#6DA5C0', '#294D61'],
+            hoverBackgroundColor: ['#2a526a', '#2d8880', '#33b59b', '#efd07e', '#f7ae78', '#ec7d5d', '#107f82', '#13a6ac', '#79b2cd', '#2e5970']
         }]
     };
     pieOptionsRoe.value = {
@@ -260,7 +260,7 @@ const setPieRoe = async () => {
             legend: {
                 labels: {
                     usePointStyle: true,
-                    color: 'black' // Asumiendo que tienes esta variable disponible
+                    color: 'black'
                 }
             }
         }
@@ -272,8 +272,8 @@ const setPieTrabajadores = async () => {
         labels: data.map(item => item.subproblema),
         datasets: [{
             data: data.map(item => item.total),
-            backgroundColor: ['#6366F1', '#A855F7', '#2DD4BF'],
-            hoverBackgroundColor: ['#4F46E5', '#9333EA', '#14B8A6']
+            backgroundColor: ['#264653', '#287271', '#2A9D8F', '#E9C46A'],
+            hoverBackgroundColor: ['#2a526a', '#2d8880', '#33b59b', '#efd07e']
         }]
     };
     pieOptionsPlanillas.value = {
@@ -281,7 +281,31 @@ const setPieTrabajadores = async () => {
             legend: {
                 labels: {
                     usePointStyle: true,
-                    color: 'black' // Asumiendo que tienes esta variable disponible
+                    color: 'black'
+                }
+            }
+        }
+    }
+}
+
+const setDonutOtros = async () => {
+    const data = await getTotalOtros();
+    doughnutData.value = {
+        labels: data.map(item => item.problema),
+        datasets: [
+            {
+                data: data.map(item => item.total),
+                backgroundColor: ['#81b29a', '#f2cc8f', '#eab69f'],
+                hoverBackgroundColor: ['#91c3aa', '#f3d6a5', '#f3c1b0']
+            }
+        ]
+    }
+    doughnutOptions.value = {
+        plugins: {
+            legend: {
+                labels: {
+                    usePointStyle: true,
+                    color: 'black'
                 }
             }
         }
@@ -405,6 +429,7 @@ watch(
         setPiePlanillas();
         setPieRoe();
         setPieTrabajadores();
+        setDonutOtros();
     },
     { immediate: true }
 );
@@ -506,6 +531,12 @@ watch(
             <div class="card flex flex-column align-items-center">
                 <h5 class="text-left w-full">Inconvenientes con trabajadores</h5>
                 <Chart type="pie" :data="pieDataTrabajadores" :options="pieOptionsTrabajadores"></Chart>
+            </div>
+        </div>
+        <div class="col-12 xl:col-6">
+            <div class="card flex flex-column align-items-center">
+                <h5 class="text-left w-full">Otros tipos de casos</h5>
+                <Chart type="doughnut" :data="doughnutData" :options="doughnutOptions"></Chart>
             </div>
         </div>
     </div>
