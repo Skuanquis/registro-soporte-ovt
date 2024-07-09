@@ -2,7 +2,9 @@
 import { ref, onMounted } from 'vue';
 import { FilterMatchMode, FilterOperator } from 'primevue/api';
 import { getUserAtenciones, updateAtencion } from '@/services/atencionService';
+import { useToast } from 'primevue/usetoast';
 
+const toast = useToast();
 
 const value1 = ref(null);
 const value2 = ref(null);
@@ -92,6 +94,7 @@ const loadAtenciones = async () => {
         atenciones.value = response.data;
     } catch (error) {
         console.error('Error fetching atenciones:', error);
+        toast.add({ severity: 'error', summary: 'Error', detail: 'Error al cargar las atenciones', life: 3000 });
     } finally {
         loading1.value = false;
     }
@@ -150,11 +153,11 @@ const handleUpdateAtencion = async () => {
             asistencia_remota: value10.value
         };
         const response = await updateAtencion(selectedAtencion.value.id_atencion, atencionData);
-        alert(response.data.message);
+        toast.add({ severity: 'success', summary: 'Éxito', detail: response.data.message, life: 3000 });
         editarAtencion.value = false;
         loadAtenciones();
     } catch (error) {
-        alert('Error updating atencion');
+        toast.add({ severity: 'error', summary: 'Error', detail: 'Error al actualizar la atencion', life: 3000 });
     }
 };
 

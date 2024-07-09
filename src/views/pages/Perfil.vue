@@ -3,7 +3,9 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { getUserInfo, updateUserProfile, updateUserPassword } from '@/services/userService';
+import { useToast } from 'primevue/usetoast';
 
+const toast = useToast();
 const nombre = ref('');
 const direccion = ref('');
 const ci = ref('');
@@ -27,6 +29,7 @@ const loadUserInfo = async () => {
         console.error('Error fetching user info:', error);
         localStorage.removeItem('token');
         router.push('/');
+        toast.add({ severity: 'error', summary: 'Error', detail: 'Error al cargar la informacion del usuario.', life: 3000 });
     }
 };
 
@@ -38,16 +41,16 @@ const actualizarInformacion = async () => {
             ci: ci.value,
             numero: numero.value,
         });
-        alert('Información actualizada con éxito');
+        toast.add({ severity: 'success', summary: 'Éxito', detail: 'Información actualizada con éxito', life: 3000 });
     } catch (error) {
         console.error('Error updating profile:', error);
-        alert('Error actualizando la información');
+        toast.add({ severity: 'error', summary: 'Error', detail: 'Error al actualizar la información', life: 3000 });
     }
 };
 
 const actualizarContrasena = async () => {
     if (nuevaPassword.value !== repetirNuevaPassword.value) {
-        alert('Las nuevas contraseñas no coinciden');
+        toast.add({ severity: 'warn', summary: 'Advertencia', detail: 'Las nuevas contraseñas no coinciden', life: 3000 });
         return;
     }
 
@@ -56,13 +59,13 @@ const actualizarContrasena = async () => {
             passwordAnterior: passwordAnterior.value,
             nuevaPassword: nuevaPassword.value,
         });
-        alert('Contraseña actualizada con éxito');
+        toast.add({ severity: 'success', summary: 'Éxito', detail: 'Contraseña actualizada con éxito', life: 3000 });
         passwordAnterior.value = '';
         nuevaPassword.value = '';
         repetirNuevaPassword.value = '';
     } catch (error) {
         console.error('Error updating password:', error);
-        alert('Error actualizando la contraseña');
+        toast.add({ severity: 'error', summary: 'Error', detail: 'Error al actualizar la contraseña', life: 3000 });
     }
 };
 
@@ -126,6 +129,7 @@ onMounted(() => {
                             placeholder="Repita la Nueva Contraseña" :toggleMask="true"></Password>
                     </div>
                 </div>
+                <br>
                 <Button label="Actualizar Contraseña" class="mr-2 mb-2" @click="actualizarContrasena"></Button>
             </div>
         </div>

@@ -7,6 +7,7 @@ import { createPinia } from 'pinia'
 
 import App from './App.vue'
 import router from './router'
+import store from './store'
 
 import Accordion from 'primevue/accordion'
 import AccordionTab from 'primevue/accordiontab'
@@ -31,11 +32,13 @@ import Tag from 'primevue/tag'
 import Dialog from 'primevue/dialog'
 import Chart from 'primevue/chart'
 import RadioButton from 'primevue/radiobutton'
+import ToastService from 'primevue/toastservice'
 
 const app = createApp(App)
 
 app.use(createPinia())
 app.use(router)
+app.use(store)
 app.use(PrimeVue, { ripple: true })
 app.component('Accordion', Accordion)
 app.component('AccordionTab', AccordionTab)
@@ -59,5 +62,6 @@ app.component('Tag', Tag)
 app.component('Dialog', Dialog)
 app.component('Chart', Chart)
 app.component('RadioButton', RadioButton)
+app.use(ToastService)
 
 app.mount('#app')

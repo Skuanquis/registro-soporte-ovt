@@ -1,52 +1,55 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { useStore } from 'vuex';
 import { getUserInfo } from '@/services/userService';
 import AppMenuItem from './AppMenuItem.vue';
 
-const modelPasante = ref([
+const modelPasante = [
     {
         label: 'Home',
         items: [
             { label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/dashboard' },
-            { label: 'Perfil', icon: 'pi pi-fw pi-user', to: '/perfil' }
+            { label: 'Perfil', icon: 'pi pi-fw pi-user', to: '/dashboard/perfil' }
         ]
     },
     {
         label: 'Acciones',
         items: [
-            { label: 'Registrar Atención', icon: 'pi pi-fw pi-pencil', to: '/registrar-atencion' },
-            { label: 'Ver Atenciones', icon: 'pi pi-fw pi-book', to: '/ver-atenciones' },
-            { label: 'Preguntas Frecuentes', icon: 'pi pi-fw pi-question-circle', to: '/preguntas-frecuentes' },
+            { label: 'Registrar Atención', icon: 'pi pi-fw pi-pencil', to: '/dashboard/registrar-atencion' },
+            { label: 'Ver Atenciones', icon: 'pi pi-fw pi-book', to: '/dashboard/ver-atenciones' },
+            { label: 'Preguntas Frecuentes', icon: 'pi pi-fw pi-question-circle', to: '/dashboard/preguntas-frecuentes' },
             { label: 'Cerrar Sesión', icon: 'pi pi-fw pi-sign-out', command: () => cerrarSesion() }
         ]
     }
-]);
+];
 
-const modelJefe = ref([
+const modelJefe = [
     {
         label: 'Home',
         items: [
             { label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/dashboard' },
-            { label: 'Perfil', icon: 'pi pi-fw pi-user', to: '/perfil' }
+            { label: 'Perfil', icon: 'pi pi-fw pi-user', to: '/dashboard/perfil' }
         ]
     },
     {
         label: 'Acciones',
         items: [
-            { label: 'Reportes', icon: 'pi pi-fw pi-file', to: '/reportes' },
-            { label: 'Ver Pasantes', icon: 'pi pi-fw pi-users', to: '/ver-usuarios' },
-            { label: 'Registrar Pasante', icon: 'pi pi-fw pi-user-plus', to: '/registrar-usuario' },
+            { label: 'Reportes', icon: 'pi pi-fw pi-file', to: '/dashboard/reportes' },
+            { label: 'Ver Pasantes', icon: 'pi pi-fw pi-users', to: '/dashboard/ver-usuarios' },
+            { label: 'Registrar Pasante', icon: 'pi pi-fw pi-user-plus', to: '/dashboard/registrar-usuario' },
             { label: 'Cerrar Sesión', icon: 'pi pi-fw pi-sign-out', command: () => cerrarSesion() }
         ]
     }
-]);
+];
 
 const model = ref([]);
 const router = useRouter();
+const store = useStore();
 
 const cerrarSesion = () => {
     localStorage.removeItem('token');
+    store.commit('clearUser');
     router.push('/');
 };
 
@@ -54,18 +57,28 @@ const loadUserInfo = async () => {
     try {
         const response = await getUserInfo();
         const user = response.data;
-
-        if (user.rol === 'supervisor') {
-            model.value = modelJefe.value;
-        } else if (user.rol === 'pasante') {
-            model.value = modelPasante.value;
-        }
+        store.commit('setUser', user);
+        updateMenu(user);
     } catch (error) {
         console.error('Error fetching user info:', error);
         localStorage.removeItem('token');
         router.push('/');
     }
 };
+
+const updateMenu = (user) => {
+    if (user.rol === 'supervisor') {
+        model.value = modelJefe;
+    } else if (user.rol === 'pasante') {
+        model.value = modelPasante;
+    }
+};
+
+watch(() => store.state.user, (newUser) => {
+    if (newUser) {
+        updateMenu(newUser);
+    }
+});
 
 onMounted(() => {
     loadUserInfo();

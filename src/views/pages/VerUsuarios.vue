@@ -2,7 +2,9 @@
 import { ref, onMounted } from 'vue';
 import { FilterMatchMode, FilterOperator } from 'primevue/api';
 import { getPasantes, getPasanteById, updatePasante } from '../../services/userService';
+import { useToast } from 'primevue/usetoast';
 
+const toast = useToast();
 const pasantes = ref([]);
 const loading1 = ref(false);
 
@@ -43,6 +45,7 @@ const loadPasantes = async () => {
         pasantes.value = response.data;
     } catch (error) {
         console.error('Error fetching pasantes:', error);
+        toast.add({ severity: 'error', summary: 'Error', detail: 'Error al cargar los pasantes', life: 3000 });
     } finally {
         loading1.value = false;
     }
@@ -53,13 +56,17 @@ const guardarCambios = async () => {
     if (pasante.value.nombre && pasante.value.direccion && pasante.value.ci && pasante.value.numero) {
         if (nuevaPassword.value) {
             pasante.value.password = nuevaPassword.value;
+        } else {
+            delete pasante.value.password;
         }
         try {
             await updatePasante(pasante.value.id_usuario, pasante.value);
             hideDialog();
             loadPasantes();
+            toast.add({ severity: 'success', summary: 'Éxito', detail: 'Pasante actualizado con éxito', life: 3000 });
         } catch (error) {
             console.error('Error updating pasante:', error);
+            toast.add({ severity: 'error', summary: 'Error', detail: 'Error al actualizar el pasante', life: 3000 });
         }
     }
 };
@@ -71,6 +78,7 @@ const infoPasante = async (infoPasante) => {
         editarPasante.value = true;
     } catch (error) {
         console.error('Error fetching pasante:', error);
+        toast.add({ severity: 'error', summary: 'Error', detail: 'Error al cargar la información del pasante', life: 3000 });
     }
 };
 

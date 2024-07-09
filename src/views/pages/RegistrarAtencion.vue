@@ -3,6 +3,7 @@ import InputNumber from 'primevue/inputnumber';
 import { ref } from 'vue';
 import { createAtencion } from '../../services/atencionService';
 import { jwtDecode } from "jwt-decode";
+import { useToast } from 'primevue/usetoast';
 
 const value1 = ref(null);
 const value2 = ref(null);
@@ -16,6 +17,7 @@ const value9 = ref(null);
 const value10 = ref(null);
 const value11 = ref(null);
 const subProblema = ref(null);
+const toast = useToast();
 
 const principal = ref([
     { name: 'Planillas', code: 'P' },
@@ -106,14 +108,11 @@ const handleSubmit = async () => {
             asistencia_remota: value10.value
         };
 
-        console.log(atencionData); // Verifica los datos que se están enviando
-
         const response = await createAtencion(atencionData);
-        alert(response.data.message);
+        toast.add({ severity: 'success', summary: 'Éxito', detail: response.data.message, life: 3000 });
         resetForm();
     } catch (error) {
-        console.error('Error creating atencion', error); // Muestra el error en la consola para más detalles
-        alert('Error creating atencion');
+        toast.add({ severity: 'error', summary: 'Error', detail: 'Error al registrar la atencion', life: 3000 });
     }
 };
 </script>

@@ -311,114 +311,6 @@ const setDonutOtros = async () => {
         }
     }
 }
-/*const setChart = () => {
-    
-    pieData.value = {
-        labels: ['Mensual', 'Retroactivo', 'Rectificación'],
-        datasets: [
-            {
-                data: [540, 325, 702],
-                backgroundColor: [documentStyle.getPropertyValue('--indigo-500'), documentStyle.getPropertyValue('--purple-500'), documentStyle.getPropertyValue('--teal-500')],
-                hoverBackgroundColor: [documentStyle.getPropertyValue('--indigo-400'), documentStyle.getPropertyValue('--purple-400'), documentStyle.getPropertyValue('--teal-400')]
-            }
-        ]
-    };
-
-    pieOptions.value = {
-        plugins: {
-            legend: {
-                labels: {
-                    usePointStyle: true,
-                    color: textColor
-                }
-            }
-        }
-    };
-
-    doughnutData.value = {
-        labels: ['Con asistencia remota', 'Sin asistencia remota'],
-        datasets: [
-            {
-                data: [540, 320],
-                backgroundColor: [documentStyle.getPropertyValue('--indigo-500'), documentStyle.getPropertyValue('--purple-500'), documentStyle.getPropertyValue('--teal-500')],
-                hoverBackgroundColor: [documentStyle.getPropertyValue('--indigo-400'), documentStyle.getPropertyValue('--purple-400'), documentStyle.getPropertyValue('--teal-400')]
-            }
-        ]
-    };
-
-    doughnutOptions.value = {
-        plugins: {
-            legend: {
-                labels: {
-                    usePointStyle: true,
-                    color: textColor
-                }
-            }
-        }
-    };
-
-    
-
-    polarData.value = {
-        datasets: [
-            {
-                data: [11, 24, 45],
-                backgroundColor: [documentStyle.getPropertyValue('--indigo-500'), documentStyle.getPropertyValue('--purple-500'), documentStyle.getPropertyValue('--teal-500'), documentStyle.getPropertyValue('--orange-500')],
-                label: 'My dataset'
-            }
-        ],
-        labels: ['Correo', 'Telefono', 'Presencial']
-    };
-
-    polarOptions.value = {
-        plugins: {
-            legend: {
-                labels: {
-                    color: textColor
-                }
-            }
-        },
-        scales: {
-            r: {
-                grid: {
-                    color: surfaceBorder
-                }
-            }
-        }
-    };
-
-    radarData.value = {
-        labels: ['Planillas', 'ROE', 'Interoperabilidad', 'Credenciales', 'Otro'],
-        datasets: [
-            {
-                label: 'Problemas',
-                borderColor: documentStyle.getPropertyValue('--indigo-400'),
-                pointBackgroundColor: documentStyle.getPropertyValue('--indigo-400'),
-                pointBorderColor: documentStyle.getPropertyValue('--indigo-400'),
-                pointHoverBackgroundColor: textColor,
-                pointHoverBorderColor: documentStyle.getPropertyValue('--indigo-400'),
-                data: [85, 79, 90, 81, 76]
-            }
-        ]
-    };
-
-    radarOptions.value = {
-        plugins: {
-            legend: {
-                labels: {
-                    fontColor: textColor
-                }
-            }
-        },
-        scales: {
-            r: {
-                grid: {
-                    color: textColorSecondary
-                }
-            }
-        }
-    };
-};*/
 
 watch(
     layoutConfig.theme,
@@ -437,7 +329,7 @@ watch(
 
 <template>
     <div class="grid">
-        <div class="col-12 lg:col-6 xl:col-3">
+        <div class="col-12 lg:col-6 xl:col-4">
             <div class="card mb-0">
                 <div class="flex justify-content-between mb-3">
                     <div>
@@ -453,7 +345,7 @@ watch(
                 <span class="text-500"> pendientes</span>
             </div>
         </div>
-        <div class="col-12 lg:col-6 xl:col-3">
+        <div class="col-12 lg:col-6 xl:col-4">
             <div class="card mb-0">
                 <div class="flex justify-content-between mb-3">
                     <div>
@@ -469,7 +361,7 @@ watch(
                 <span class="text-500"> pendientes</span>
             </div>
         </div>
-        <div class="col-12 lg:col-6 xl:col-3">
+        <div class="col-12 lg:col-6 xl:col-4">
             <div class="card mb-0">
                 <div class="flex justify-content-between mb-3">
                     <div>
@@ -483,22 +375,6 @@ watch(
                 </div>
                 <span class="text-red-500 font-medium">{{ atencionesPendientes['Presenciales'] || 0 }}</span>
                 <span class="text-500"> pendientes</span>
-            </div>
-        </div>
-        <div class="col-12 lg:col-6 xl:col-3">
-            <div class="card mb-0">
-                <div class="flex justify-content-between mb-3">
-                    <div>
-                        <span class="block text-500 font-medium mb-3">Hojas de ruta</span>
-                        <div class="text-900 font-medium text-xl">1 registrada</div>
-                    </div>
-                    <div class="flex align-items-center justify-content-center bg-purple-100 border-round"
-                        style="width: 2.5rem; height: 2.5rem">
-                        <i class="pi pi-file text-purple-500 text-xl"></i>
-                    </div>
-                </div>
-                <span class="text-green-500 font-medium"> </span>
-                <span class="text-500">F</span>
             </div>
         </div>
     </div>

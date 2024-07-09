@@ -74,3 +74,11 @@ export async function getTotalOtros() {
   const response = await api.get('/total-otros')
   return response.data
 }
+
+export const getPreguntasFrecuentes = () => {
+  return api.get('/preguntas-frecuentes')
+}
+
+export const addPregunta = (preguntaData) => {
+  return api.post('/add-preguntas', preguntaData)
+}

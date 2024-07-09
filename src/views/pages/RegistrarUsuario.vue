@@ -1,6 +1,9 @@
 <script setup>
 import { ref } from 'vue';
 import { createUser } from '../../services/userService';
+import { useToast } from 'primevue/usetoast';
+
+const toast = useToast();
 
 const nombre = ref('');
 const direccion = ref('');
@@ -20,7 +23,19 @@ const resetForm = () => {
     rol.value = 'pasante';
 }
 
+const validateForm = () => {
+    if (!nombre.value || !direccion.value || !ci.value || !celular.value || !userAsignada.value || !passwordAsignada.value) {
+        toast.add({ severity: 'warn', summary: 'Advertencia', detail: 'Todos los campos son obligatorios', life: 3000 });
+        return false;
+    }
+    return true;
+};
+
 const handleSubmit = async () => {
+    if (!validateForm()) {
+        return;
+    }
+
     try {
         const userData = {
             nombre: nombre.value,
@@ -31,11 +46,11 @@ const handleSubmit = async () => {
             password: passwordAsignada.value,
             rol: rol.value
         };
-        const response = await createUser(userData)
-        alert(response.data.message);
+        const response = await createUser(userData);
+        toast.add({ severity: 'success', summary: 'Éxito', detail: response.data.message, life: 3000 });
         resetForm();
     } catch (error) {
-        alert('Error al registrar pasante');
+        toast.add({ severity: 'error', summary: 'Error', detail: 'Error al registrar pasante', life: 3000 });
     }
 };
 
