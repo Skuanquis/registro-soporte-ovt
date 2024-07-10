@@ -1,9 +1,11 @@
 <script setup>
 import { ref, onMounted } from 'vue';
-import { FilterMatchMode, FilterOperator } from 'primevue/api';
 import { getUserAtenciones, updateAtencion } from '@/services/atencionService';
+import { getUserInfo } from '@/services/userService';
 import { useToast } from 'primevue/usetoast';
-
+import { jsPDF } from 'jspdf';
+import { FilterMatchMode, FilterOperator } from 'primevue/api';
+import 'jspdf-autotable';
 const toast = useToast();
 
 const value1 = ref(null);
@@ -20,6 +22,7 @@ const value11 = ref(null);
 const subProblema = ref(null);
 const atenciones = ref([]);
 const loading1 = ref(false);
+const nombre = ref('');
 
 const principal = ref([
     { name: 'Planillas', code: 'P' },
@@ -73,15 +76,16 @@ const solucion = ref([
     { name: 'Solucionado', code: 'S' },
     { name: 'Pendiente', code: 'PE' }
 ]);
-const filtros = ref({
-    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    atencion: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
-    date: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.DATE_IS }] },
-    nit: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }] },
-    empresa: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
-    telefono: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }] },
-    estado: { operator: FilterOperator.OR, constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }] }
-});
+
+const loadUserInfo = async () => {
+    try {
+        const response = await getUserInfo();
+        const user = response.data;
+        nombre.value = user.nombre;
+    } catch (error) {
+        console.error('Error fetching user info:', error);
+    }
+};
 
 const editarAtencion = ref(false);
 const selectedAtencion = ref(null);
@@ -91,7 +95,12 @@ const loadAtenciones = async () => {
     try {
         const userId = localStorage.getItem('userId');
         const response = await getUserAtenciones(userId);
-        atenciones.value = response.data;
+        if (response && response.data) {
+            atenciones.value = response.data;
+            //console.log("Atenciones cargadas: ", atenciones.value);
+        } else {
+            throw new Error('No data received');
+        }
     } catch (error) {
         console.error('Error fetching atenciones:', error);
         toast.add({ severity: 'error', summary: 'Error', detail: 'Error al cargar las atenciones', life: 3000 });
@@ -99,6 +108,7 @@ const loadAtenciones = async () => {
         loading1.value = false;
     }
 };
+
 
 const formatDate = (value) => {
     return new Date(value).toLocaleDateString('es-ES', {
@@ -161,8 +171,115 @@ const handleUpdateAtencion = async () => {
     }
 };
 
+const filtros = ref({
+    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    tipo_atencion: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
+    fecha: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.DATE_IS }] },
+    nit: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }] },
+    empresa: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
+    problema: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
+    subproblema: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] },
+    telefono: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.EQUALS }] },
+    estado: { operator: FilterOperator.AND, constraints: [{ value: null, matchMode: FilterMatchMode.STARTS_WITH }] }
+});
+
+const iniciarFiltros = () => {
+    filtros.value = {
+        global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+        tipo_atencion: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+        fecha: { value: null, matchMode: FilterMatchMode.DATE_IS },
+        nit: { value: null, matchMode: FilterMatchMode.EQUALS },
+        empresa: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+        problema: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+        subproblema: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+        telefono: { value: null, matchMode: FilterMatchMode.EQUALS },
+        estado: { value: null, matchMode: FilterMatchMode.STARTS_WITH }
+    }
+}
+
+const limpiarFiltros = () => iniciarFiltros();
+const generatePDF = () => {
+    const doc = new jsPDF();
+
+    const logo1 = new Image();
+    const logo2 = new Image();
+    logo1.src = '/layout/images/bicentenario.png'
+    logo2.src = '/layout/images/toplogo.png'
+
+    doc.addImage(logo1, 'PNG', 60, 11, 35, 15);
+    doc.addImage(logo2, 'PNG', 100, 10, 58, 16);
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    const text1 = "UNIDAD DE TECNOLOGIAS DE LA INFORMACIÓN Y COMUNICACIONES";
+    const text2 = "ATENCIONES SOPORTE OVT";
+    const textWidth1 = doc.getTextWidth(text1);
+    const pageWidth1 = doc.internal.pageSize.getWidth();
+    const textWidth2 = doc.getTextWidth(text2);
+    const pageWidth2 = doc.internal.pageSize.getWidth();
+    const x1 = (pageWidth1 - textWidth1) / 2;
+    const x2 = (pageWidth2 - textWidth2) / 2;
+    const fechaActual = new Date();
+    const year = fechaActual.getFullYear();
+    const month = fechaActual.getMonth() + 1;
+    const day = fechaActual.getDate();
+    const formattedMonth = month < 10 ? `0${month}` : month;
+    const formattedDay = day < 10 ? `0${day}` : day;
+    const fechaActualDoc = `${year}-${formattedMonth}-${formattedDay}`;
+    doc.text(text1, x1, 37);
+    doc.text(text2, x2, 43);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(12);
+
+    doc.text(`Pasante: ${nombre.value}`, 14, 60);
+    doc.text(`Fecha del Reporte: ${fechaActualDoc}`, 14, 66);
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+
+    doc.text(`Registros encontrados: ${atenciones.value.length}`, 14, 74);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(12);
+    const headers = [
+        { title: 'Tipo de Atención', dataKey: 'tipo_atencion' },
+        { title: 'Fecha', dataKey: 'fecha' },
+        { title: 'NIT', dataKey: 'nit' },
+        { title: 'Nombre Empresa', dataKey: 'nombre_empresa' },
+        { title: 'Problema', dataKey: 'problema' },
+        { title: 'Subproblema', dataKey: 'subproblema' },
+        { title: 'Teléfono', dataKey: 'telefono' },
+        { title: 'Estado', dataKey: 'estado' }
+    ];
+
+    const data = atenciones.value.map(aten => ({
+        tipo_atencion: aten.tipo_atencion || 'N/D',
+        fecha: formatDate(aten.fecha) || 'N/D',
+        nit: aten.nit || 'N/D',
+        nombre_empresa: aten.nombre_empresa || 'N/D',
+        problema: aten.problema || 'N/D',
+        subproblema: aten.subproblema || 'N/D',
+        telefono: aten.telefono || 'N/D',
+        estado: aten.estado || 'N/D'
+    }));
+
+
+    doc.autoTable({
+        startY: 80,
+        columns: headers,
+        body: data,
+        theme: 'striped',
+        showHead: 'everyPage',
+        margin: { top: 30 },
+    });
+
+    doc.save(`reportePasante${nombre.value}-${fechaActualDoc}.pdf`);
+};
+
 onMounted(() => {
     loadAtenciones();
+    loadUserInfo();
 });
 </script>
 
@@ -170,7 +287,14 @@ onMounted(() => {
     <div class="grid">
         <div class="col-12">
             <div class="card">
-                <h5>Mis Atenciones</h5>
+                <div class="grid">
+                    <div class="col-6">
+                        <h5>Mis Atenciones</h5>
+                    </div>
+                    <div class="col-6 text-right"><Button label="Exportar a PDF" icon="pi pi-file-pdf"
+                            class="p-button-succes" @click="generatePDF" />
+                    </div>
+                </div>
                 <DataTable :value="atenciones" :paginator="true" :rows="10" dataKey="id" :rowHover="true"
                     v-model:filters="filtros" filterDisplay="menu" :loading="loading1" :filters="filtros"
                     :globalFilterFields="['tipo_atencion', 'nit', 'telefono', 'nombre_empresa', 'estado']"
@@ -196,7 +320,7 @@ onMounted(() => {
                                 placeholder="Buscar por atención" />
                         </template>
                     </Column>
-                    <Column header="Fecha" filterField="fecha" dataType="date" style="min-width: 10rem">
+                    <Column field="fecha" header="Fecha" filterField="fecha" dataType="date" style="min-width: 10rem">
                         <template #body="{ data }">
                             {{ formatDate(data.fecha) }}
                         </template>
@@ -204,7 +328,7 @@ onMounted(() => {
                             <Calendar v-model="filterModel.value" dateFormat="dd/mm/yy" placeholder="dd/mm/yyyy" />
                         </template>
                     </Column>
-                    <Column header="NIT" filterField="nit" dataType="numeric" style="min-width: 10rem">
+                    <Column field="nit" header="NIT" filterField="nit" dataType="numeric" style="min-width: 10rem">
                         <template #body="{ data }">
                             {{ data.nit }}
                         </template>
@@ -212,7 +336,8 @@ onMounted(() => {
                             <InputNumber v-model="filterModel.value" inputId="withoutgrouping" :useGrouping="false" />
                         </template>
                     </Column>
-                    <Column field="nombre_empresa" header="Nombre empresa" style="min-width: 12rem">
+                    <Column field="nombre_empresa" header="Nombre empresa" filterField="empresa"
+                        style="min-width: 12rem">
                         <template #body="{ data }">
                             {{ data.nombre_empresa }}
                         </template>
@@ -221,7 +346,26 @@ onMounted(() => {
                                 placeholder="Buscar por nombre" />
                         </template>
                     </Column>
-                    <Column header="Teléfono" filterField="telefono" dataType="numeric" style="min-width: 10rem">
+                    <Column field="problema" header="Problema" style="min-width: 12rem">
+                        <template #body="{ data }">
+                            {{ data.problema }}
+                        </template>
+                        <template #filter="{ filterModel }">
+                            <InputText type="text" v-model="filterModel.value" class="p-column-filter"
+                                placeholder="Buscar por nombre" />
+                        </template>
+                    </Column>
+                    <Column field="subproblema" header="Subproblema" style="min-width: 12rem">
+                        <template #body="{ data }">
+                            {{ data.subproblema }}
+                        </template>
+                        <template #filter="{ filterModel }">
+                            <InputText type="text" v-model="filterModel.value" class="p-column-filter"
+                                placeholder="Buscar por nombre" />
+                        </template>
+                    </Column>
+                    <Column field="telefono" header="Telefono" fieldheader="Teléfono" filterField="telefono"
+                        style="min-width: 10rem">
                         <template #body="{ data }">
                             {{ data.telefono }}
                         </template>
@@ -265,13 +409,15 @@ onMounted(() => {
                         <h5>Datos de la empresa</h5>
                         <FloatLabel>
                             <InputNumber id="inputnumber" v-model="value3" inputId="withoutgrouping"
-                                :useGrouping="false"></InputNumber>
+                                :useGrouping="false">
+                            </InputNumber>
                             <label for="inputnumber">NIT</label>
                         </FloatLabel>
                         <br>
                         <FloatLabel>
                             <InputNumber id="inputnumber" v-model="value4" inputId="withoutgrouping"
-                                :useGrouping="false"></InputNumber>
+                                :useGrouping="false">
+                            </InputNumber>
                             <label for="inputnumber">Matricula de comercio</label>
                         </FloatLabel>
                         <br>

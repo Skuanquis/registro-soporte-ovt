@@ -7,8 +7,8 @@ const toast = useToast();
 
 const nombre = ref('');
 const direccion = ref('');
-const ci = ref('');
-const celular = ref('');
+const ci = ref(0);
+const celular = ref(0);
 const userAsignada = ref('');
 const passwordAsignada = ref('');
 const rol = ref('pasante');
@@ -16,8 +16,8 @@ const rol = ref('pasante');
 const resetForm = () => {
     nombre.value = '';
     direccion.value = '';
-    ci.value = '';
-    celular.value = '';
+    ci.value = 0;
+    celular.value = 0;
     userAsignada.value = '';
     passwordAsignada.value = '';
     rol.value = 'pasante';

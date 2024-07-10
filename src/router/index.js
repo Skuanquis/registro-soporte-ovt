@@ -55,6 +55,12 @@ const routes = [
         name: 'ver-usuarios',
         component: () => import('@/views/pages/VerUsuarios.vue'),
         meta: { requiresAuth: true, roles: ['supervisor'] }
+      },
+      {
+        path: 'reportes',
+        name: 'reportes',
+        component: () => import('@/views/pages/Reportes.vue'),
+        meta: { requiresAuth: true, roles: ['supervisor'] }
       }
     ]
   }

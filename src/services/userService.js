@@ -82,3 +82,11 @@ export const getPreguntasFrecuentes = () => {
 export const addPregunta = (preguntaData) => {
   return api.post('/add-preguntas', preguntaData)
 }
+
+export const getListaPasantes = () => {
+  return api.get('/lista-pasantes')
+}
+
+export const getReport = (filters) => {
+  return api.post('/reportes', filters)
+}

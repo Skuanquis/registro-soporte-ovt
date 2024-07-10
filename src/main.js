@@ -38,7 +38,7 @@ const app = createApp(App)
 
 app.use(createPinia())
 app.use(router)
-app.use(store)
+app.use(store)  
 app.use(PrimeVue, { ripple: true })
 app.component('Accordion', Accordion)
 app.component('AccordionTab', AccordionTab)
